@@ -3,112 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xmod - Video Platform</title>
+    <title>Xmod - Ultimate Video Platform</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0d0d; color: #fff; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0d0d0d; color: #fff; }
 
-        /* Header & Animated Logo */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background-color: #141414; border-bottom: 2px solid #222; }
-        
+        /* --- 18+ Age Gate Modal --- */
+        #ageGate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; text-align: center;
+        }
+        .age-box { background: #1a1a1a; padding: 40px; border-radius: 12px; border: 2px solid #ff0055; max-width: 450px; }
+        .age-box h2 { color: #ff0055; margin-bottom: 15px; font-size: 28px; }
+        .age-btn { padding: 12px 25px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin: 10px; font-size: 16px; }
+        .btn-yes { background: #ff0055; color: white; }
+        .btn-no { background: #444; color: white; }
+
+        /* --- Header & Xmod Animation --- */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background-color: #141414; border-bottom: 2px solid #ff0055; position: sticky; top: 0; z-index: 100; }
         .animated-logo {
-            font-size: 36px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #ff0055, #ff5000, #ff0055);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite, pulse 1.5s ease-in-out infinite alternate;
+            font-size: 38px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px;
+            background: linear-gradient(90deg, #ff0055, #ffaa00, #ff0055); background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shine 2s linear infinite, pulse 1.2s ease-in-out infinite alternate;
         }
+        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes pulse { from { transform: scale(1); filter: drop-shadow(0 0 2px #ff0055); } to { transform: scale(1.05); filter: drop-shadow(0 0 12px #ff0055); } }
 
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-        @keyframes pulse {
-            from { transform: scale(1); filter: drop-shadow(0 0 2px #ff0055); }
-            to { transform: scale(1.05); filter: drop-shadow(0 0 10px #ff0055); }
-        }
+        .live-badge { background: #ff0055; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        /* --- Layout Container --- */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
-        /* Upload Section */
-        .upload-section { background-color: #1a1a1a; padding: 25px; border-radius: 10px; border: 1px solid #333; margin-bottom: 40px; }
-        .upload-section h3 { margin-bottom: 15px; color: #ff0055; }
-        .form-group { margin-bottom: 15px; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #444; background-color: #262626; color: #fff; }
-        .btn-upload { background: linear-gradient(45deg, #ff0055, #ff5000); color: white; padding: 12px 25px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-upload:hover { opacity: 0.9; transform: translateY(-2px); }
+        /* --- Upload Section & Progress Notification --- */
+        .upload-card { background: #181818; padding: 25px; border-radius: 10px; border: 1px solid #2a2a2a; margin-bottom: 30px; }
+        .upload-card h3 { color: #ff0055; margin-bottom: 15px; }
+        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; background: #252525; border: 1px solid #333; color: white; border-radius: 6px; }
+        .btn-submit { background: linear-gradient(45deg, #ff0055, #ff5000); color: white; border: none; padding: 12px 30px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        
+        /* Notification Box */
+        .notification-box { display: none; margin-top: 15px; background: #222; padding: 15px; border-radius: 6px; border-left: 4px solid #ff0055; }
+        .progress-bar-container { background: #444; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-bar { background: #ff0055; height: 100%; width: 0%; transition: width 0.2s; }
 
-        /* Video Feed Grid */
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .video-card { background-color: #1a1a1a; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a2a; }
-        .video-card video { width: 100%; height: 200px; object-fit: cover; background-color: #000; }
-        .video-info { padding: 15px; }
-        .video-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+        /* --- Video Grid & Player --- */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .video-card { background: #141414; border-radius: 10px; overflow: hidden; border: 1px solid #282828; }
+        .video-card video { width: 100%; height: 220px; background: #000; object-fit: cover; }
+        .video-details { padding: 15px; }
+        .video-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        
+        /* Engagement Controls (Likes & Comments) */
+        .actions { display: flex; gap: 15px; margin: 10px 0; }
+        .btn-action { background: #222; border: 1px solid #444; color: white; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-action:hover { background: #ff0055; border-color: #ff0055; }
+        
+        .comments-section { margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; }
+        .comment-input-box { display: flex; gap: 10px; margin-bottom: 10px; }
+        .comment-input-box input { flex: 1; padding: 8px; background: #222; border: 1px solid #333; color: white; border-radius: 4px; }
+        .comment-list { max-height: 100px; overflow-y: auto; font-size: 13px; color: #ccc; }
+        .comment-item { background: #1f1f1f; padding: 6px 10px; border-radius: 4px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
+    <!-- 18+ Verification Modal -->
+    <div id="ageGate">
+        <div class="age-box">
+            <h2>⚠️ 18+ වයස් සීමාව</h2>
+            <p>මෙම වෙබ් අඩවියට පිවිසීමට ඔබගේ වයස අවුරුදු 18ට වැඩි විය යුතුය.</p>
+            <button class="age-btn btn-yes" onclick="confirmAge(true)">මගේ වයස 18ට වැඩියි</button>
+            <button class="age-btn btn-no" onclick="confirmAge(false)">පිටවෙන්න</button>
+        </div>
+    </div>
+
+    <!-- Header -->
     <header>
-        <!-- Animation සහිත Xmod Logo එක -->
         <div class="animated-logo">Xmod</div>
         <div>
-            <span>Online: <strong id="onlineCount" style="color: #00ffcc;">1</strong></span>
+            <span class="live-badge">🔴 LIVE</span>
+            <span style="margin-left: 10px;">Online Users: <strong id="onlineUsers" style="color: #00ffcc;">1,428</strong></span>
         </div>
     </header>
 
     <div class="container">
-        <!-- ඕනෑම කෙනෙකුට Video Upload කිරීමට ඇති කොටස -->
-        <div class="upload-section">
-            <h3>Upload New Video</h3>
-            <form id="uploadForm">
-                <div class="form-group">
-                    <input type="text" id="videoTitle" placeholder="වීඩියෝ එකේ මාතෘකාව (Title)" required>
-                </div>
-                <div class="form-group">
-                    <input type="file" id="videoFile" accept="video/*" required>
-                </div>
-                <button type="submit" class="btn-upload">Upload Video</button>
+        <!-- Upload Section -->
+        <div class="upload-card">
+            <h3>වීඩියෝ එකක් Upload කරන්න (උපරිම විනාඩි 50)</h3>
+            <form id="videoUploadForm">
+                <input type="text" id="videoTitle" class="form-control" placeholder="වීඩියෝ මාතෘකාව (Title)" required>
+                <input type="file" id="videoFile" class="form-control" accept="video/*" required>
+                <button type="submit" class="btn-submit">Upload & Share</button>
             </form>
+
+            <!-- Upload Notification Progress Bar -->
+            <div id="notificationBox" class="notification-box">
+                <div id="statusText">Uploading video... 0%</div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Upload කළ වීඩියෝ පෙන්වන ස්ථානය -->
-        <h3 style="margin-bottom: 20px;">Uploaded Videos</h3>
-        <div class="video-grid" id="videoGrid">
-            <!-- උදාහරණ වීඩියෝ කාඩ්පතක් -->
+        <!-- Video Feed Container -->
+        <h2>Uploaded Videos</h2>
+        <div class="video-grid" id="videoGrid" style="margin-top: 20px;">
+            <!-- Upload වන වීඩියෝ මෙතැනට එකතු වේ -->
         </div>
     </div>
 
     <script>
-        const uploadForm = document.getElementById('uploadForm');
+        // 1. Age Verification Control
+        function confirmAge(isAdult) {
+            if (isAdult) {
+                document.getElementById('ageGate').style.display = 'none';
+            } else {
+                alert("ඔබගේ වයස අවුරුදු 18ට අඩු බැවින් මෙම අඩවියට පිවිසිය නොහැක.");
+                window.location.href = "https://www.google.com";
+            }
+        }
+
+        // 2. Random Online Counter Dynamic Update (Real-time පෙනුම සඳහා)
+        setInterval(() => {
+            const count = Math.floor(Math.random() * (1550 - 1400 + 1)) + 1400;
+            document.getElementById('onlineUsers').innerText = count.toLocaleString();
+        }, 4000);
+
+        // 3. Upload and Duration Validation System
+        const uploadForm = document.getElementById('videoUploadForm');
+        const notificationBox = document.getElementById('notificationBox');
+        const progressBar = document.getElementById('progressBar');
+        const statusText = document.getElementById('statusText');
         const videoGrid = document.getElementById('videoGrid');
 
-        // පරිශීලකයා Upload කරන වීඩියෝ එක Page එකේ පෙන්වීම (Browser preview)
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const title = document.getElementById('videoTitle').value;
             const fileInput = document.getElementById('videoFile');
             const file = fileInput.files[0];
 
-            if (file) {
-                const videoUrl = URL.createObjectURL(file);
-                
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <video controls src="${videoUrl}"></video>
-                    <div class="video-info">
-                        <div class="video-title">${title}</div>
-                    </div>
-                `;
-                
-                videoGrid.prepend(card);
-                uploadForm.reset();
-            }
+            if (!file) return;
+
+            // Video Duration Check (Max 50 Mins = 3000 Seconds)
+            const tempVideo = document.createElement('video');
+            tempVideo.preload = 'metadata';
+            tempVideo.src = URL.createObjectURL(file);
+
+            tempVideo.onloadedmetadata = function() {
+                window.URL.revokeObjectURL(tempVideo.src);
+                const durationMinutes = tempVideo.duration / 60;
+
+                if (durationMinutes > 50) {
+                    alert("❌ මෙම වීඩියෝවේ ධාවන කාලය විනාඩි 50කට වඩා වැඩිය! කරුණාකර විනාඩි 50ට අඩු වීඩියෝවක් තෝරන්න.");
+                    return;
+                }
+
+                // Simulate Fast Upload with Progress Notification
+                notificationBox.style.display = 'block';
+                let progress = 0;
+
+                const uploadInterval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = progress + '%';
+                    statusText.innerText = `Uploading video... ${progress}%`;
+
+                    if (progress >= 100) {
+                        clearInterval(uploadInterval);
+                        statusText.innerText = `✅ Upload Completed Successfully!`;
+                        setTimeout(() => { notificationBox.style.display = 'none'; }, 2000);
+                        
+                        // Video Card එක Page එකට එකතු කිරීම
+                        addVideoCard(title, URL.createObjectURL(file));
+                        uploadForm.reset();
+                    }
+                }, 200); // වේගයෙන් Upload වන පරිදි සකසා ඇත
+            };
         });
+
+        // 4. Video Card Generation with Like/Comment feature
+        function addVideoCard(title, videoSrc) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            card.innerHTML = `
+                <video controls src="${videoSrc}"></video>
+                <div class="video-details">
+                    <div class="video-title">${title}</div>
+                    
+                    <div class="actions">
+                        <button class="btn-action" onclick="likeVideo(this)">👍 <span class="like-count">0</span></button>
+                        <button class="btn-action" onclick="dislikeVideo(this)">👎 <span class="dislike-count">0</span></button>
+                    </div>
+
+                    <div class="comments-section">
+                        <div class="comment-input-box">
+                            <input type="text" placeholder="අදහස් දක්වන්න (Comment)...">
+                            <button class="btn-action" onclick="addComment(this)">Post</button>
+                        </div>
+                        <div class="comment-list"></div>
+                    </div>
+                </div>
+            `;
+            videoGrid.prepend(card);
+        }
+
+        // 5. Like & Dislike Logic
+        function likeVideo(btn) {
+            let countSpan = btn.querySelector('.like-count');
+            countSpan.innerText = parseInt(countSpan.innerText) + 1;
+        }
+        function dislikeVideo(btn) {
+            let countSpan = btn.querySelector('.dislike-count');
+            countSpan.innerText = parseInt(countSpan.innerText) + 1;
+        }
+
+        // 6. Real-time Commenting Logic
+        function addComment(btn) {
+            const input = btn.previousElementSibling;
+            const text = input.value.trim();
+            if (text !== '') {
+                const commentList = btn.parentElement.nextElementSibling;
+                const newComment = document.createElement('div');
+                newComment.className = 'comment-item';
+                newComment.innerHTML = `<strong>User_${Math.floor(Math.random()*900+100)}:</strong> ${text}`;
+                commentList.prepend(newComment);
+                input.value = '';
+            }
+        }
     </script>
 </body>
 </html>
