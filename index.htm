@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Streaming Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: #fff; text-align: center; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        video { width: 100%; max-width: 640px; height: auto; background-color: #000; border-radius: 8px; margin-top: 15px; }
+        .status-box { background: #333; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: inline-block; }
+        .online-count { color: #00ffcc; font-weight: bold; }
+        button { padding: 10px 20px; font-size: 16px; background-color: #ff0055; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #cc0044; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Live Video Platform</h2>
+    
+    <!-- ඔන්ලයින් සිටින සංඛ්‍යාව පෙන්වන කොටස -->
+    <div class="status-box">
+        සජීවීව සම්බන්ධ වී සිටින සංඛ්‍යාව: <span id="onlineCount" class="online-count">0</span>
+    </div>
+
+    <!-- වීඩියෝ පෙන්වන කොටස -->
+    <div>
+        <video id="webcamVideo" autoplay playsinline muted></video>
+    </div>
+
+    <button id="startBtn" onclick="startCamera()">Live Stream ආරම්භ කරන්න</button>
+</div>
+
+<!-- Real-time සම්බන්ධතාව සඳහා Socket.io භාවිතය -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    // ඔන්ලයින් සිටින ගණන Update කිරීම
+    socket.on('updateUserCount', (count) => {
+        document.getElementById('onlineCount').innerText = count;
+    });
+
+    // පරිශීලකයාගේ කැමරාව සහ මයික්‍රෆෝනය සක්‍රිය කිරීම
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const videoElement = document.getElementById('webcamVideo');
+            videoElement.srcObject = stream;
+            document.getElementById('startBtn').innerText = "Streaming Active";
+            document.getElementById('startBtn').disabled = true;
+        } catch (error) {
+            alert("කැමරාව සක්‍රිය කිරීමට නොහැකි විය: " + error.message);
+        }
+    }
+</script>
+
+</body>
+</html>
