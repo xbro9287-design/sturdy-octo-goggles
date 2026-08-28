@@ -3,329 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xmod - Ultimate Streaming Platform</title>
+    <title>X MOD - Video Platform</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        /* === GLOBAL STYLES & ANIMATIONS === */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0b; color: #fff; overflow-x: hidden; }
 
-        /* 18+ Verification Modal */
-        #ageModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: #181818; padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; border: 1px solid #ff0055; }
-        .btn-age { padding: 12px 30px; margin: 15px 10px 0; border: none; font-weight: bold; border-radius: 25px; cursor: pointer; }
-        .btn-yes { background: #ff0055; color: #fff; }
-        .btn-no { background: #333; color: #ccc; }
+        /* Glowing Animated Logo */
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
+            50% { text-shadow: 0 0 20px #ff6600, 0 0 30px #ff6600; }
+            100% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
+        }
 
-        /* Header & Navigation */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: #121212; border-bottom: 2px solid #ff0055; position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 32px; font-weight: 900; background: linear-gradient(90deg, #ff0055, #ff5000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse 1.5s infinite alternate; cursor: pointer; }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); filter: drop-shadow(0 0 8px #ff0055); } }
+        /* Navbar Design */
+        header { background: #121212; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 2px solid #ff9900; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 28px; font-weight: 900; letter-spacing: 1px; color: #fff; cursor: pointer; }
+        .logo span { background: #ff9900; color: #000; padding: 2px 8px; border-radius: 4px; animation: glow 2s infinite; margin-left: 5px; }
         
-        .search-box input { padding: 10px 20px; border-radius: 20px; border: 1px solid #333; background: #222; color: #fff; width: 300px; outline: none; }
-        .online-status { font-size: 14px; background: #222; padding: 8px 15px; border-radius: 20px; border: 1px solid #00ffcc; color: #00ffcc; }
+        .search-bar { display: flex; width: 40%; }
+        .search-bar input { width: 100%; padding: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 4px 0 0 4px; outline: none; }
+        .search-bar button { padding: 10px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
 
-        /* Pages System */
-        .page { display: none; padding: 30px 40px; }
+        /* Page Layouts */
+        .container { padding: 30px; max-width: 1400px; margin: auto; }
+        .page { display: none; }
         .active-page { display: block; }
 
-        /* Video Grid (Home Page) */
+        /* Video Grid Layout */
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .video-card { background: #181818; border-radius: 10px; overflow: hidden; border: 1px solid #282828; cursor: pointer; transition: 0.3s; }
-        .video-card:hover { transform: translateY(-5px); border-color: #ff0055; }
-        .thumbnail-box { width: 100%; height: 170px; background: #000; position: relative; display: flex; align-items: center; justify-content: center; }
-        .thumbnail-box img { width: 100%; height: 100%; object-fit: cover; }
-        .play-icon { position: absolute; font-size: 40px; color: #ff0055; opacity: 0.8; }
-        .video-info { padding: 15px; }
-        .video-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #fff; }
+        .video-card { background: #181818; border-radius: 8px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; border: 1px solid #222; }
+        .video-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3); border-color: #ff9900; }
+        .thumbnail-container { width: 100%; height: 170px; background: #000; position: relative; }
+        .thumbnail-container video { width: 100%; height: 100%; object-fit: cover; }
+        .video-info { padding: 12px; }
+        .video-title { font-size: 15px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-meta { font-size: 12px; color: #aaa; }
 
-        /* Floating (+) Upload Button */
-        .fab-upload { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(45deg, #ff0055, #ff5000); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; color: #fff; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(255,0,85,0.5); z-index: 90; }
+        /* Floating Plus (+) Button */
+        .fab-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(45deg, #ff9900, #ff5500); color: #fff; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 153, 0, 0.5); transition: transform 0.2s; z-index: 99; }
+        .fab-btn:hover { transform: scale(1.1); }
 
-        /* Watch Page Layout */
-        .watch-container { max-width: 900px; margin: 0 auto; }
-        .player-wrapper { width: 100%; height: 500px; background: #000; border-radius: 10px; overflow: hidden; }
-        .player-wrapper iframe, .player-wrapper video { width: 100%; height: 100%; border: none; }
-        .action-bar { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 15px; background: #181818; border-radius: 8px; }
-        .like-btn { background: #252525; border: 1px solid #444; color: #fff; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        .like-btn.liked { background: #ff0055; border-color: #ff0055; }
+        /* Upload Modal (Pop-up) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1f1f1f; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; border: 1px solid #ff9900; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
+        .modal h2 { margin-bottom: 20px; color: #ff9900; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; }
+        .form-group input { width: 100%; padding: 10px; background: #2b2b2b; border: 1px solid #444; color: white; border-radius: 4px; }
+        .submit-btn { width: 100%; padding: 12px; background: #ff9900; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 10px; }
 
-        /* Comments */
-        .comment-section { margin-top: 30px; background: #181818; padding: 20px; border-radius: 8px; }
-        .comment-input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        .comment-input-group input { flex: 1; padding: 12px; background: #252525; border: 1px solid #333; border-radius: 5px; color: #fff; }
-        .comment-box { background: #222; padding: 10px 15px; border-radius: 5px; margin-bottom: 10px; }
-
-        /* Add Video Page */
-        .upload-card { max-width: 600px; margin: 40px auto; background: #181818; padding: 30px; border-radius: 10px; border: 1px solid #333; }
-        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; background: #252525; border: 1px solid #444; color: #fff; border-radius: 5px; }
-        .help-text { color: #00ffcc; font-size: 12px; margin-bottom: 15px; display: block; }
+        /* Single Watch Page Styles */
+        .watch-container { max-width: 1000px; margin: auto; }
+        .main-player { width: 100%; height: 500px; background: #000; border-radius: 8px; outline: none; border: 1px solid #333; }
+        .watch-title { font-size: 22px; margin: 15px 0 10px 0; color: #fff; }
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .action-btns button { background: #222; border: 1px solid #444; color: white; padding: 8px 15px; margin-left: 8px; border-radius: 4px; cursor: pointer; }
+        .action-btns button:hover { background: #ff9900; color: black; }
+        
+        /* Comments Section */
+        .comments-section { margin-top: 20px; }
+        .comment-input { display: flex; gap: 10px; margin-bottom: 20px; }
+        .comment-input input { flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px; }
+        .comment-input button { padding: 10px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .comment-list .comment-item { background: #181818; padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #ff9900; }
     </style>
 </head>
 <body>
 
-    <!-- 18+ Verification Popup -->
-    <div id="ageModal">
-        <div class="modal-content">
-            <h2>WARNING: 18+ ADULT CONTENT</h2>
-            <p style="margin-top: 15px; color: #aaa;">මෙම වෙබ් අඩවියට පිවිසීමට ඔබගේ වයස අවුරුදු 18ට වැඩි විය යුතුය.</p>
-            <button class="btn-age btn-yes" onclick="confirmAge(true)">මම අවුරුදු 18ට වැඩියි</button>
-            <button class="btn-age btn-no" onclick="confirmAge(false)">පිටවෙන්න</button>
-        </div>
-    </div>
-
-    <!-- Header -->
+    <!-- Header Navigation -->
     <header>
-        <div class="logo" onclick="showPage('homePage')">Xmod</div>
-        <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="filterVideos()" placeholder="Search videos...">
+        <div class="logo" onclick="showPage('homePage')">X<span>MOD</span></div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search videos...">
+            <button>Search</button>
         </div>
-        <div class="online-status">● Live Online: <span id="onlineCount">1,420</span></div>
     </header>
 
-    <!-- Page 1: Home Page (Video Grid) -->
-    <div id="homePage" class="page active-page">
-        <h2 style="margin-bottom: 20px;">Featured Videos</h2>
-        <div class="video-grid" id="videoGrid"></div>
+    <!-- MAIN HOME PAGE -->
+    <div id="homePage" class="container page active-page">
+        <h2 style="margin-bottom: 20px; border-left: 4px solid #ff9900; padding-left: 10px;">Trending Videos</h2>
+        <div class="video-grid" id="videoGrid">
+            <!-- Videos will be populated here dynamically -->
+        </div>
     </div>
 
-    <!-- Page 2: Watch Page -->
-    <div id="watchPage" class="page">
+    <!-- SINGLE VIDEO WATCH PAGE -->
+    <div id="watchPage" class="container page">
         <div class="watch-container">
-            <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff0055; cursor:pointer; margin-bottom:15px;">← Back to Home</button>
+            <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:10px;">← Back to Home</button>
+            <video id="videoPlayer" class="main-player" controls autoplay></video>
+            <h1 id="watchTitle" class="watch-title">Video Title</h1>
             
-            <div class="player-wrapper" id="playerWrapper"></div>
-            
-            <div class="action-bar">
-                <div>
-                    <h2 id="watchTitle">Video Title</h2>
-                    <p id="watchDesc" style="color: #aaa; margin-top: 5px; font-size: 14px;"></p>
+            <div class="actions-bar">
+                <span id="watchViews" style="color: #aaa;">0 Views</span>
+                <div class="action-btns">
+                    <button onclick="likeVideo()">👍 <span id="likeCount">0</span></button>
+                    <button>👎 Dislike</button>
+                    <button onclick="alert('Download started...')">⬇ Download</button>
                 </div>
-                <button class="like-btn" id="likeBtn" onclick="toggleLike()">❤ <span id="likeCount">0</span> Likes</button>
             </div>
 
-            <!-- Comment Section -->
-            <div class="comment-section">
-                <h3>Comments (<span id="commentCount">0</span>)</h3>
-                <div class="comment-input-group" style="margin-top:15px;">
-                    <input type="text" id="commentInput" placeholder="Add a public comment...">
-                    <button class="btn-age btn-yes" style="margin:0;" onclick="addComment()">Comment</button>
+            <!-- Comments -->
+            <div class="comments-section">
+                <h3>Comments</h3>
+                <div class="comment-input" style="margin-top: 10px;">
+                    <input type="text" id="commentText" placeholder="Add a public comment...">
+                    <button onclick="addComment()">Comment</button>
                 </div>
-                <div id="commentsContainer"></div>
+                <div class="comment-list" id="commentList">
+                    <!-- Comments added here -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Page 3: Add Video Page -->
-    <div id="uploadPage" class="page">
-        <div class="upload-card">
-            <h2>Add New Video Link</h2>
-            <p style="color: #888; margin-bottom: 10px; font-size: 13px;">YouTube / Vimeo / Direct Video Link පාවිච්චි කරන්න.</p>
-            
-            <form id="uploadForm">
-                <input type="text" id="videoTitleInput" class="form-control" placeholder="Video Title" required>
-                <textarea id="videoDescInput" class="form-control" rows="3" placeholder="Video Description"></textarea>
-                <input type="url" id="videoUrlInput" class="form-control" placeholder="Video URL (e.g. https://www.youtube.com/watch?v=...)" required>
-                <span class="help-text">⚡ සාමාන්‍ය වීඩියෝ Upload සීමාවන් නොමැත (Speed & Smooth Stream)</span>
-                
-                <button type="submit" class="btn-age btn-yes" style="width: 100%; margin: 0;">Publish Video</button>
-            </form>
+    <!-- FLOATING PLUS BUTTON -->
+    <div class="fab-btn" onclick="openModal()">+</div>
+
+    <!-- UPLOAD MODAL (POPUP) -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Upload Video to X MOD</h2>
+            <div class="form-group">
+                <label>Video Title</label>
+                <input type="text" id="videoTitleInput" placeholder="Enter video title...">
+            </div>
+            <div class="form-group">
+                <label>Select Video File</label>
+                <input type="file" id="videoFileInput" accept="video/*">
+            </div>
+            <button class="submit-btn" onclick="uploadVideo()">Publish Video</button>
         </div>
     </div>
 
-    <!-- Floating Add Button (+) -->
-    <button class="fab-upload" onclick="showPage('uploadPage')">+</button>
-
-    <!-- Firebase Realtime Database SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // ⚠️ මෙතනට ඔයාගේ Firebase Config Keys දාන්න ⚠️
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        window.videos = [];
-        window.currentVideo = null;
-        window.isLiked = false;
-
-        // Fetch videos in Real-time (හැමෝටම සැනින් පෙන්නයි)
-        const videosRef = ref(db, 'videos');
-        onValue(videosRef, (snapshot) => {
-            const data = snapshot.val();
-            window.videos = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    window.videos.unshift({ id: key, ...data[key] });
-                });
-            }
-            renderVideos();
-        });
-
-        // Add Video Link Logic
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const title = document.getElementById('videoTitleInput').value;
-            const desc = document.getElementById('videoDescInput').value;
-            const url = document.getElementById('videoUrlInput').value;
-
-            push(ref(db, 'videos'), {
-                title: title,
-                desc: desc,
-                url: url,
-                likes: 0,
-                comments: []
-            });
-
-            alert("වීඩියෝව සාර්ථකව එකතු විය! දැන් අනිත් හැමෝටම පෙනෙනු ඇත.");
-            document.getElementById('uploadForm').reset();
-            showPage('homePage');
-        });
-
-        // Toggle Like in Database
-        window.toggleLike = function() {
-            if (!window.currentVideo) return;
-            const likeBtn = document.getElementById('likeBtn');
-            let updatedLikes = window.currentVideo.likes || 0;
-
-            if (!window.isLiked) {
-                updatedLikes++;
-                window.isLiked = true;
-                likeBtn.classList.add('liked');
-            } else {
-                updatedLikes = Math.max(0, updatedLikes - 1);
-                window.isLiked = false;
-                likeBtn.classList.remove('liked');
-            }
-            
-            update(ref(db, 'videos/' + window.currentVideo.id), { likes: updatedLikes });
-            document.getElementById('likeCount').innerText = updatedLikes;
-        };
-
-        // Add Comment in Database
-        window.addComment = function() {
-            const input = document.getElementById('commentInput');
-            if (input.value.trim() === '' || !window.currentVideo) return;
-
-            const comments = window.currentVideo.comments || [];
-            comments.push(input.value);
-            
-            update(ref(db, 'videos/' + window.currentVideo.id), { comments: comments });
-            input.value = '';
-        };
-    </script>
-
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Age Verification & Basic Page Controls
-        function confirmAge(isAdult) {
-            if (isAdult) {
-                document.getElementById('ageModal').style.display = 'none';
-            } else {
-                window.location.href = "https://www.google.com";
+        // Sample Initial Data Database
+        let videos = [
+            {
+                id: '1',
+                title: 'X Mod Official Intro Demo Video',
+                url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+                views: 1240,
+                likes: 85,
+                comments: ['Awesome platform!', 'Love the design.']
             }
-        }
+        ];
 
+        let currentVideoId = null;
+
+        // Page Router Function
         function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById(pageId).classList.add('active-page');
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
-        function filterVideos() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.video-card');
-            cards.forEach(card => {
-                const title = card.querySelector('.video-title').innerText.toLowerCase();
-                card.style.display = title.includes(query) ? 'block' : 'none';
-            });
-        }
-
-        // Convert YouTube URL to Embed Player URL & Thumbnail
-        function getYoutubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        // Render Video Cards
+        // Render Video Grid on Home Page
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
-            
-            window.videos.forEach(video => {
-                const ytId = getYoutubeId(video.url);
-                const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'https://via.placeholder.com/300x170/181818/ff0055?text=Video+Stream';
 
+            videos.forEach(v => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.onclick = () => openWatchPage(video.id);
+                card.onclick = () => openWatchPage(v.id);
                 card.innerHTML = `
-                    <div class="thumbnail-box">
-                        <img src="${thumb}" alt="Thumbnail">
-                        <span class="play-icon">▶</span>
+                    <div class="thumbnail-container">
+                        <video src="${v.url}#t=0.5" preload="metadata"></video>
                     </div>
                     <div class="video-info">
-                        <div class="video-title">${video.title}</div>
-                        <div style="font-size: 12px; color: #888;">❤ ${video.likes || 0} Likes</div>
+                        <div class="video-title">${v.title}</div>
+                        <div class="video-meta">${v.views} views • Just now</div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // Open Watch Page & Inject Correct Player
+        // Open Single Video Watch Page
         function openWatchPage(id) {
-            window.currentVideo = window.videos.find(v => v.id === id);
-            if (!window.currentVideo) return;
+            const video = videos.find(v => v.id === id);
+            if (!video) return;
 
-            const wrapper = document.getElementById('playerWrapper');
-            const ytId = getYoutubeId(window.currentVideo.url);
+            currentVideoId = id;
+            video.views += 1; // Increase Views
 
-            if (ytId) {
-                wrapper.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            } else {
-                wrapper.innerHTML = `<video src="${window.currentVideo.url}" controls autoplay></video>`;
+            document.getElementById('videoPlayer').src = video.url;
+            document.getElementById('watchTitle').innerText = video.title;
+            document.getElementById('watchViews').innerText = `${video.views} Views`;
+            document.getElementById('likeCount').innerText = video.likes;
+
+            // Render Comments
+            renderComments(video.comments);
+
+            showPage('watchPage');
+            renderVideos(); // Refresh home views
+        }
+
+        // Like Functionality
+        function likeVideo() {
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                video.likes += 1;
+                document.getElementById('likeCount').innerText = video.likes;
+            }
+        }
+
+        // Comment Functionality
+        function addComment() {
+            const input = document.getElementById('commentText');
+            if (!input.value.trim()) return;
+
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                video.comments.push(input.value);
+                renderComments(video.comments);
+                input.value = '';
+            }
+        }
+
+        function renderComments(commentsArray) {
+            const list = document.getElementById('commentList');
+            list.innerHTML = commentsArray.map(c => `<div class="comment-item">${c}</div>`).join('');
+        }
+
+        // Modal Controls
+        function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
+
+        // Handle Video Upload
+        function uploadVideo() {
+            const titleInput = document.getElementById('videoTitleInput').value;
+            const fileInput = document.getElementById('videoFileInput').files[0];
+
+            if (!titleInput || !fileInput) {
+                alert('Please provide a title and select a video file.');
+                return;
             }
 
-            document.getElementById('watchTitle').innerText = window.currentVideo.title;
-            document.getElementById('watchDesc').innerText = window.currentVideo.desc;
-            document.getElementById('likeCount').innerText = window.currentVideo.likes || 0;
-            
-            window.isLiked = false;
-            document.getElementById('likeBtn').classList.remove('liked');
+            // Create Local Blob URL for uploaded video
+            const videoURL = URL.createObjectURL(fileInput);
 
-            renderComments();
-            showPage('watchPage');
+            const newVideo = {
+                id: Date.now().toString(),
+                title: titleInput,
+                url: videoURL,
+                views: 0,
+                likes: 0,
+                comments: []
+            };
+
+            videos.unshift(newVideo); // Add to top of list
+            renderVideos();
+            closeModal();
+
+            // Clear Inputs
+            document.getElementById('videoTitleInput').value = '';
+            document.getElementById('videoFileInput').value = '';
+
+            alert('Video uploaded successfully!');
         }
 
-        function renderComments() {
-            const container = document.getElementById('commentsContainer');
-            container.innerHTML = '';
-            const comments = window.currentVideo.comments || [];
-            document.getElementById('commentCount').innerText = comments.length;
-
-            comments.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'comment-box';
-                div.innerText = c;
-                container.prepend(div);
-            });
-        }
-
-        setInterval(() => {
-            const base = 1400;
-            const random = Math.floor(Math.random() * 50);
-            document.getElementById('onlineCount').innerText = (base + random).toLocaleString();
-        }, 3000);
+        // Initial Initialization
+        renderVideos();
     </script>
 </body>
 </html>
