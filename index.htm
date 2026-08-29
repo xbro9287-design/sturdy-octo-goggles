@@ -101,7 +101,7 @@
                 <div class="action-btns">
                     <button onclick="likeVideo()">👍 <span id="likeCount">0</span></button>
                     <button>👎 Dislike</button>
-                    <button onclick="alert('Download started...')">⬇ Download</button>
+                    <button onclick="downloadCurrentVideo()">⬇ Download</button>
                 </div>
             </div>
 
@@ -126,58 +126,46 @@
     <div id="uploadModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Upload Video to X MOD</h2>
+            <h2>Add Video to X MOD</h2>
             <div class="form-group">
                 <label>Video Title</label>
                 <input type="text" id="videoTitleInput" placeholder="Enter video title...">
             </div>
             <div class="form-group">
-                <label>Select Video File</label>
-                <input type="file" id="videoFileInput" accept="video/*">
+                <label>Direct Video URL (Link)</label>
+                <input type="text" id="videoUrlInput" placeholder="https://example.com/video.mp4">
             </div>
-            <button class="submit-btn" onclick="uploadVideo()">Publish Video</button>
+            <button class="submit-btn" onclick="uploadVideo()">Add Video</button>
         </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Sample Initial Data Database
+        // Sample Initial Data Database - මෙතනට ඔයාට ඕන තරම් Direct Video Links ඇඩ් කරන්න පුළුවන්
         let videos = [
             {
                 id: '1',
-                title: 'X Mod Official Intro Demo Video',
+                title: 'X Mod Official Intro Demo Video 1',
                 url: 'https://files.catbox.moe/ajrhj4.mp4',
                 views: 1240,
                 likes: 85,
                 comments: ['Awesome platform!', 'Love the design.']
-            }
-        ];
-        
-       <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // Sample Initial Data Database
-        let videos = [
+            },
             {
-                id: '1',
-                title: 'X Mod Official Intro Demo Video',
-                url: 'https://files.catbox.moe/ajrhj4.mp4',
-                views: 1240,
-                likes: 85,
-                comments: ['Awesome platform!', 'Love the design.']
-            }
-        ];
-       
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // Sample Initial Data Database
-        let videos = [
+                id: '2',
+                title: 'Sample Video 2',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                views: 530,
+                likes: 42,
+                comments: ['Nice video!']
+            },
             {
-                id: '1',
-                title: 'X Mod Official Intro Demo Video',
-                url: 'https://files.catbox.moe/ajrhj4.mp4',
-                views: 1240,
-                likes: 85,
-                comments: ['Awesome platform!', 'Love the design.']
+                id: '3',
+                title: 'Sample Video 3',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                views: 890,
+                likes: 67,
+                comments: ['Great content']
             }
         ];
 
@@ -259,27 +247,38 @@
             list.innerHTML = commentsArray.map(c => `<div class="comment-item">${c}</div>`).join('');
         }
 
+        // Download Video Function
+        function downloadCurrentVideo() {
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                const a = document.createElement('a');
+                a.href = video.url;
+                a.download = video.title || 'video';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
         // Modal Controls
         function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
-        // Handle Video Upload
+        // Handle Adding Video via URL Link
         function uploadVideo() {
-            const titleInput = document.getElementById('videoTitleInput').value;
-            const fileInput = document.getElementById('videoFileInput').files[0];
+            const titleInput = document.getElementById('videoTitleInput').value.trim();
+            const urlInput = document.getElementById('videoUrlInput').value.trim();
 
-            if (!titleInput || !fileInput) {
-                alert('Please provide a title and select a video file.');
+            if (!titleInput || !urlInput) {
+                alert('Please provide both a video title and a valid video URL.');
                 return;
             }
-
-            // Create Local Blob URL for uploaded video
-            const videoURL = URL.createObjectURL(fileInput);
 
             const newVideo = {
                 id: Date.now().toString(),
                 title: titleInput,
-                url: videoURL,
+                url: urlInput,
                 views: 0,
                 likes: 0,
                 comments: []
@@ -291,9 +290,9 @@
 
             // Clear Inputs
             document.getElementById('videoTitleInput').value = '';
-            document.getElementById('videoFileInput').value = '';
+            document.getElementById('videoUrlInput').value = '';
 
-            alert('Video uploaded successfully!');
+            alert('Video added successfully!');
         }
 
         // Initial Initialization
