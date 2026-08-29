@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X MOD - Video Platform</title>
     <style>
-        /* === GLOBAL STYLES & ANIMATIONS === */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0b; color: #fff; overflow-x: hidden; }
 
@@ -15,7 +14,6 @@
             100% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
         }
 
-        /* Navbar Design */
         header { background: #121212; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 2px solid #ff9900; position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 28px; font-weight: 900; letter-spacing: 1px; color: #fff; cursor: pointer; }
         .logo span { background: #ff9900; color: #000; padding: 2px 8px; border-radius: 4px; animation: glow 2s infinite; margin-left: 5px; }
@@ -24,12 +22,10 @@
         .search-bar input { width: 100%; padding: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 4px 0 0 4px; outline: none; }
         .search-bar button { padding: 10px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
 
-        /* Page Layouts */
         .container { padding: 30px; max-width: 1400px; margin: auto; }
         .page { display: none; }
         .active-page { display: block; }
 
-        /* Home Page Upload Progress Banner */
         .upload-progress-container {
             display: none;
             background: #181818;
@@ -38,29 +34,10 @@
             padding: 15px;
             margin-bottom: 25px;
         }
-        .upload-status-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #ff9900;
-        }
-        .progress-bar-bg {
-            width: 100%;
-            height: 10px;
-            background: #333;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #ff9900, #ff5500);
-            transition: width 0.2s ease-in-out;
-        }
+        .upload-status-text { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #ff9900; }
+        .progress-bar-bg { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff9900, #ff5500); transition: width 0.2s ease-in-out; }
 
-        /* Video Grid Layout */
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .video-card { background: #181818; border-radius: 8px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; border: 1px solid #222; }
         .video-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3); border-color: #ff9900; }
@@ -70,11 +47,9 @@
         .video-title { font-size: 15px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .video-meta { font-size: 12px; color: #aaa; }
 
-        /* Floating Plus (+) Button */
         .fab-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(45deg, #ff9900, #ff5500); color: #fff; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 153, 0, 0.5); transition: transform 0.2s; z-index: 99; }
         .fab-btn:hover { transform: scale(1.1); }
 
-        /* Upload Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1f1f1f; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; border: 1px solid #ff9900; position: relative; }
         .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
@@ -84,7 +59,6 @@
         .form-group input { width: 100%; padding: 10px; background: #2b2b2b; border: 1px solid #444; color: white; border-radius: 4px; }
         .submit-btn { width: 100%; padding: 12px; background: #ff9900; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 10px; }
 
-        /* Single Watch Page Styles */
         .watch-container { max-width: 1000px; margin: auto; }
         .main-player { width: 100%; height: 500px; background: #000; border-radius: 8px; outline: none; border: 1px solid #333; }
         .watch-title { font-size: 22px; margin: 15px 0 10px 0; color: #fff; }
@@ -92,7 +66,6 @@
         .action-btns button { background: #222; border: 1px solid #444; color: white; padding: 8px 15px; margin-left: 8px; border-radius: 4px; cursor: pointer; }
         .action-btns button:hover { background: #ff9900; color: black; }
         
-        /* Comments Section */
         .comments-section { margin-top: 20px; }
         .comment-input { display: flex; gap: 10px; margin-bottom: 20px; }
         .comment-input input { flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px; }
@@ -110,12 +83,10 @@
         </div>
     </header>
 
-    <!-- HOME PAGE -->
     <div id="homePage" class="container page active-page">
-        <!-- Home Screen Upload Progress Section -->
         <div id="uploadProgressContainer" class="upload-progress-container">
             <div class="upload-status-text">
-                <span id="uploadTitleText">Uploading Video...</span>
+                <span id="uploadTitleText">Uploading to Cloud Storage...</span>
                 <span id="uploadPercentText">0%</span>
             </div>
             <div class="progress-bar-bg">
@@ -127,7 +98,6 @@
         <div class="video-grid" id="videoGrid"></div>
     </div>
 
-    <!-- WATCH PAGE -->
     <div id="watchPage" class="container page">
         <div class="watch-container">
             <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:10px;">← Back to Home</button>
@@ -154,14 +124,12 @@
         </div>
     </div>
 
-    <!-- FLOATING BUTTON -->
     <div class="fab-btn" onclick="openModal()">+</div>
 
-    <!-- UPLOAD MODAL -->
     <div id="uploadModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Upload Video</h2>
+            <h2>Upload Video to Cloud</h2>
             <div class="form-group">
                 <label>Video Title</label>
                 <input type="text" id="videoTitleInput" placeholder="Enter title...">
@@ -170,40 +138,16 @@
                 <label>Select Video File</label>
                 <input type="file" id="videoFileInput" accept="video/*">
             </div>
-            <button class="submit-btn" id="uploadBtn" onclick="uploadVideo()">Save Video</button>
+            <button class="submit-btn" id="uploadBtn" onclick="uploadVideoToCloud()">Upload Video</button>
         </div>
     </div>
 
     <script>
-        let db;
-        let videos = [];
+        const CLOUD_NAME = "Iujkktcz"; 
+        const UPLOAD_PRESET = "YOUR_UNSIGNED_PRESET"; // මෙතැනට ඔබගේ Unsigned Preset Name එක යොදන්න
+
+        let videos = JSON.parse(localStorage.getItem('cloud_videos')) || [];
         let currentVideoId = null;
-
-        // IndexedDB Initialize
-        const request = indexedDB.open("XModVideoDB", 1);
-
-        request.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("videos")) {
-                db.createObjectStore("videos", { keyPath: "id" });
-            }
-        };
-
-        request.onsuccess = function(e) {
-            db = e.target.result;
-            loadStoredVideos();
-        };
-
-        function loadStoredVideos() {
-            const tx = db.transaction("videos", "readonly");
-            const store = tx.objectStore("videos");
-            const getAll = store.getAll();
-
-            getAll.onsuccess = function() {
-                videos = getAll.result || [];
-                renderVideos();
-            };
-        }
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
@@ -216,22 +160,21 @@
             grid.innerHTML = '';
 
             if (videos.length === 0) {
-                grid.innerHTML = '<p style="color: #666;">වීඩියෝ එකක්වත් නෑ, + ලකුණ ඔබලා වීඩියෝ එකක් Upload කරන්න!</p>';
+                grid.innerHTML = '<p style="color: #666;">වීඩියෝ නොමැත, + ලකුණ ඔබා Cloud එකට Upload කරන්න!</p>';
                 return;
             }
 
             videos.forEach(v => {
-                const videoUrl = URL.createObjectURL(v.fileBlob);
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => openWatchPage(v.id);
                 card.innerHTML = `
                     <div class="thumbnail-container">
-                        <video src="${videoUrl}#t=0.5" preload="metadata"></video>
+                        <video src="${v.url}#t=0.5" preload="metadata"></video>
                     </div>
                     <div class="video-info">
                         <div class="video-title">${v.title}</div>
-                        <div class="video-meta">${v.views} views • Saved</div>
+                        <div class="video-meta">${v.views} views • Cloud Saved</div>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -244,10 +187,9 @@
 
             currentVideoId = id;
             video.views += 1;
-            updateVideoInDB(video);
+            saveVideosToStorage();
 
-            const videoUrl = URL.createObjectURL(video.fileBlob);
-            document.getElementById('videoPlayer').src = videoUrl;
+            document.getElementById('videoPlayer').src = video.url;
             document.getElementById('watchTitle').innerText = video.title;
             document.getElementById('watchViews').innerText = `${video.views} Views`;
             document.getElementById('likeCount').innerText = video.likes;
@@ -262,7 +204,7 @@
             if (video) {
                 video.likes += 1;
                 document.getElementById('likeCount').innerText = video.likes;
-                updateVideoInDB(video);
+                saveVideosToStorage();
             }
         }
 
@@ -274,7 +216,7 @@
             if (video) {
                 video.comments.push(input.value);
                 renderComments(video.comments);
-                updateVideoInDB(video);
+                saveVideosToStorage();
                 input.value = '';
             }
         }
@@ -287,20 +229,14 @@
         function downloadCurrentVideo() {
             const video = videos.find(v => v.id === currentVideoId);
             if (video) {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(video.fileBlob);
-                a.download = video.title + '.mp4';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                window.open(video.url, '_blank');
             }
         }
 
         function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
-        // Home Screen Upload with Real-time Progress Bar
-        function uploadVideo() {
+        function uploadVideoToCloud() {
             const titleInput = document.getElementById('videoTitleInput').value.trim();
             const fileInput = document.getElementById('videoFileInput').files[0];
 
@@ -309,66 +245,73 @@
                 return;
             }
 
+            if (UPLOAD_PRESET === "Iujkktcz") {
+                alert('කරුණාකර Code එකේ UPLOAD_PRESET එක වෙනස් කරන්න!');
+                return;
+            }
+
             closeModal();
             showPage('homePage');
 
-            // Home Progress UI elements
             const progressContainer = document.getElementById('uploadProgressContainer');
             const progressFill = document.getElementById('progressBarFill');
             const percentText = document.getElementById('uploadPercentText');
             const titleText = document.getElementById('uploadTitleText');
 
             progressContainer.style.display = 'block';
-            titleText.innerText = `Uploading: "${titleInput}"`;
-            progressFill.style.width = '0%';
-            percentText.innerText = '0%';
+            titleText.innerText = `Uploading to Cloud: "${titleInput}"`;
 
-            // Upload Progress Simulation (Storage Read & Write)
-            let currentProgress = 0;
-            const progressInterval = setInterval(() => {
-                currentProgress += 10;
-                if (currentProgress > 90) {
-                    clearInterval(progressInterval);
-                    
-                    // Complete Save to IndexedDB
+            const formData = new FormData();
+            formData.append('file', fileInput);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, true);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = percentComplete + '%';
+                    percentText.innerText = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const cloudVideoUrl = response.secure_url;
+
                     const newVideo = {
                         id: Date.now().toString(),
                         title: titleInput,
-                        fileBlob: fileInput,
+                        url: cloudVideoUrl,
                         views: 0,
                         likes: 0,
                         comments: []
                     };
 
-                    const tx = db.transaction("videos", "readwrite");
-                    const store = tx.objectStore("videos");
-                    store.add(newVideo);
+                    videos.unshift(newVideo);
+                    saveVideosToStorage();
+                    renderVideos();
 
-                    tx.oncomplete = function() {
-                        progressFill.style.width = '100%';
-                        percentText.innerText = '100%';
-                        
-                        setTimeout(() => {
-                            progressContainer.style.display = 'none';
-                            videos.unshift(newVideo);
-                            renderVideos();
-
-                            document.getElementById('videoTitleInput').value = '';
-                            document.getElementById('videoFileInput').value = '';
-                        }, 600);
-                    };
+                    progressContainer.style.display = 'none';
+                    document.getElementById('videoTitleInput').value = '';
+                    document.getElementById('videoFileInput').value = '';
+                    alert('Cloud Storage එකට වීඩියෝ එක සාර්ථකව Upload වුණා!');
                 } else {
-                    progressFill.style.width = currentProgress + '%';
-                    percentText.innerText = currentProgress + '%';
+                    alert('Upload වුණේ නැත. Upload Preset එක නිවැරදිදැයි පරීක්ෂා කරන්න.');
+                    progressContainer.style.display = 'none';
                 }
-            }, 120);
+            };
+
+            xhr.send(formData);
         }
 
-        function updateVideoInDB(video) {
-            const tx = db.transaction("videos", "readwrite");
-            const store = tx.objectStore("videos");
-            store.put(video);
+        function saveVideosToStorage() {
+            localStorage.setItem('cloud_videos', JSON.stringify(videos));
         }
+
+        renderVideos();
     </script>
 </body>
 </html>
