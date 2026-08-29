@@ -108,15 +108,17 @@
         const CLOUD_NAME = "Iujkktcz"; 
         const UPLOAD_PRESET = "my_preset"; 
 
-        function fetchGlobalVideos() {
-            fetch(`https://res.cloudinary.com/${CLOUD_NAME}/video/list/public_video.json`)
+        // JSONBin Server එකක් හරහා ඕනෑම ෆෝන් එකකට වීඩියෝ ලැයිස්තුව Sync කිරීම
+        const JSONBIN_URL = "https://api.jsonbin.io/v3/b/66cf9b15e41b4d34e42718cb";
+
+        function loadGlobalVideos() {
+            fetch(JSONBIN_URL + '/latest')
                 .then(res => res.json())
                 .then(data => {
-                    renderGrid(data.resources || []);
+                    renderGrid(data.record || []);
                 })
                 .catch(() => {
-                    const localVideos = JSON.parse(localStorage.getItem('cloud_videos')) || [];
-                    renderGrid(localVideos);
+                    renderGrid([]);
                 });
         }
 
@@ -124,24 +126,21 @@
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
 
-            if (videoList.length === 0) {
+            if (!videoList || videoList.length === 0) {
                 grid.innerHTML = '<p style="color: #666;">තවම වීඩියෝ නොමැත, පළමු වීඩියෝ එක + ඔබා Upload කරන්න!</p>';
                 return;
             }
 
             videoList.forEach(v => {
-                const videoUrl = v.public_id ? `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/${v.public_id}.mp4` : v.url;
-                const title = v.title || v.public_id || "Uploaded Video";
-
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.onclick = () => openWatchPage(videoUrl, title);
+                card.onclick = () => openWatchPage(v.url, v.title);
                 card.innerHTML = `
                     <div class="thumbnail-container">
-                        <video src="${videoUrl}#t=0.5" preload="metadata"></video>
+                        <video src="${v.url}#t=0.5" preload="metadata"></video>
                     </div>
                     <div class="video-info">
-                        <div class="video-title">${title}</div>
+                        <div class="video-title">${v.title}</div>
                         <div class="video-meta">Shared Video</div>
                     </div>
                 `;
@@ -176,7 +175,6 @@
             const formData = new FormData();
             formData.append('file', fileInput);
             formData.append('upload_preset', UPLOAD_PRESET);
-            formData.append('tags', 'public_video'); 
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, true);
@@ -192,16 +190,28 @@
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    
-                    let localVideos = JSON.parse(localStorage.getItem('cloud_videos')) || [];
-                    localVideos.unshift({ url: response.secure_url, title: titleInput });
-                    localStorage.setItem('cloud_videos', JSON.stringify(localVideos));
+                    const newVideo = { url: response.secure_url, title: titleInput };
 
-                    progressContainer.style.display = 'none';
-                    document.getElementById('videoTitleInput').value = '';
-                    document.getElementById('videoFileInput').value = '';
-                    alert('වීඩියෝ එක සාර්ථකව Upload වුණා!');
-                    fetchGlobalVideos();
+                    // Online Global Storage එකට Video එක Save කිරීම
+                    fetch(JSONBIN_URL + '/latest')
+                        .then(res => res.json())
+                        .then(data => {
+                            let currentVideos = data.record || [];
+                            currentVideos.unshift(newVideo);
+
+                            return fetch(JSONBIN_URL, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(currentVideos)
+                            });
+                        })
+                        .then(() => {
+                            progressContainer.style.display = 'none';
+                            document.getElementById('videoTitleInput').value = '';
+                            document.getElementById('videoFileInput').value = '';
+                            alert('වීඩියෝ එක සාර්ථකව Upload වුණා!');
+                            loadGlobalVideos();
+                        });
                 } else {
                     alert('Upload කරගැනීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.');
                     progressContainer.style.display = 'none';
@@ -220,7 +230,7 @@
         function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
-        fetchGlobalVideos();
+        loadGlobalVideos();
     </script>
 </body>
 </html>
