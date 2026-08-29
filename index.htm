@@ -106,21 +106,15 @@
 
     <script>
         const CLOUD_NAME = "Iujkktcz"; 
-        const UPLOAD_PRESET = "xmod_preset"; 
-
-        // Firebase Live Public Database (100% Guaranteed Global Sync)
-        const FIREBASE_DB_URL = "https://xmod-video-app-default-rtdb.firebaseio.com/videos.json";
+        
+        // npoint.io via direct public JSON storage
+        const STORAGE_URL = "https://api.npoint.io/8a649d2c20dd8c0c4e42";
 
         function loadGlobalVideos() {
-            fetch(FIREBASE_DB_URL)
+            fetch(STORAGE_URL)
                 .then(res => res.json())
                 .then(data => {
-                    if (data) {
-                        const videoList = Object.keys(data).map(key => data[key]).reverse();
-                        renderGrid(videoList);
-                    } else {
-                        renderGrid([]);
-                    }
+                    renderGrid(data.videos || []);
                 })
                 .catch(() => {
                     renderGrid([]);
@@ -132,7 +126,7 @@
             grid.innerHTML = '';
 
             if (!videoList || videoList.length === 0) {
-                grid.innerHTML = '<p style="color: #888;">තවම වීඩියෝ නොමැත, පළමු වීඩියෝ එක + ඔබා Upload කරන්න!</p>';
+                grid.innerHTML = '<p style="color: #666;">තවම වීඩියෝ නොමැත, පළමු වීඩියෝ එක + ඔබා Upload කරන්න!</p>';
                 return;
             }
 
@@ -177,9 +171,10 @@
 
             progressContainer.style.display = 'block';
 
+            // Direct unsigned upload via default configuration
             const formData = new FormData();
             formData.append('file', fileInput);
-            formData.append('upload_preset', UPLOAD_PRESET);
+            formData.append('upload_preset', 'ml_default');
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, true);
@@ -195,26 +190,27 @@
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    const videoUrl = response.secure_url;
+                    const newVideo = { url: response.secure_url, title: titleInput };
 
-                    // Permanently Saving to Google Firebase Database
-                    fetch(FIREBASE_DB_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: titleInput,
-                            url: videoUrl,
-                            createdAt: new Date().toISOString()
+                    fetch(STORAGE_URL)
+                        .then(res => res.json())
+                        .then(data => {
+                            let list = data.videos || [];
+                            list.unshift(newVideo);
+
+                            return fetch(STORAGE_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ videos: list })
+                            });
                         })
-                    })
-                    .then(() => {
-                        progressContainer.style.display = 'none';
-                        document.getElementById('videoTitleInput').value = '';
-                        document.getElementById('videoFileInput').value = '';
-                        alert('වීඩියෝ එක සාර්ථකව Upload වුණා!');
-                        loadGlobalVideos();
-                    });
-
+                        .then(() => {
+                            progressContainer.style.display = 'none';
+                            document.getElementById('videoTitleInput').value = '';
+                            document.getElementById('videoFileInput').value = '';
+                            alert('වීඩියෝ එක සාර්ථකව Upload වුණා!');
+                            loadGlobalVideos();
+                        });
                 } else {
                     alert('Upload කරගැනීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.');
                     progressContainer.style.display = 'none';
