@@ -9,7 +9,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0b; color: #fff; overflow-x: hidden; }
 
-        /* Glowing Animated Logo */
         @keyframes glow {
             0% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
             50% { text-shadow: 0 0 20px #ff6600, 0 0 30px #ff6600; }
@@ -44,7 +43,7 @@
         .fab-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(45deg, #ff9900, #ff5500); color: #fff; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 153, 0, 0.5); transition: transform 0.2s; z-index: 99; }
         .fab-btn:hover { transform: scale(1.1); }
 
-        /* Upload Modal (Pop-up) */
+        /* Upload Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1f1f1f; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; border: 1px solid #ff9900; position: relative; }
         .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
@@ -72,7 +71,6 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
     <header>
         <div class="logo" onclick="showPage('homePage')">X<span>MOD</span></div>
         <div class="search-bar">
@@ -81,15 +79,13 @@
         </div>
     </header>
 
-    <!-- MAIN HOME PAGE -->
+    <!-- HOME PAGE -->
     <div id="homePage" class="container page active-page">
         <h2 style="margin-bottom: 20px; border-left: 4px solid #ff9900; padding-left: 10px;">Trending Videos</h2>
-        <div class="video-grid" id="videoGrid">
-            <!-- Videos will be populated here dynamically -->
-        </div>
+        <div class="video-grid" id="videoGrid"></div>
     </div>
 
-    <!-- SINGLE VIDEO WATCH PAGE -->
+    <!-- WATCH PAGE -->
     <div id="watchPage" class="container page">
         <div class="watch-container">
             <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:10px;">← Back to Home</button>
@@ -105,131 +101,130 @@
                 </div>
             </div>
 
-            <!-- Comments -->
             <div class="comments-section">
                 <h3>Comments</h3>
                 <div class="comment-input" style="margin-top: 10px;">
                     <input type="text" id="commentText" placeholder="Add a public comment...">
                     <button onclick="addComment()">Comment</button>
                 </div>
-                <div class="comment-list" id="commentList">
-                    <!-- Comments added here -->
-                </div>
+                <div class="comment-list" id="commentList"></div>
             </div>
         </div>
     </div>
 
-    <!-- FLOATING PLUS BUTTON -->
+    <!-- FLOATING BUTTON -->
     <div class="fab-btn" onclick="openModal()">+</div>
 
-    <!-- UPLOAD MODAL (POPUP) -->
+    <!-- UPLOAD MODAL -->
     <div id="uploadModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Add Video to X MOD</h2>
+            <h2>Upload Video</h2>
             <div class="form-group">
                 <label>Video Title</label>
-                <input type="text" id="videoTitleInput" placeholder="Enter video title...">
+                <input type="text" id="videoTitleInput" placeholder="Enter title...">
             </div>
             <div class="form-group">
-                <label>Direct Video URL (Link)</label>
-                <input type="text" id="videoUrlInput" placeholder="https://example.com/video.mp4">
+                <label>Select Video File</label>
+                <input type="file" id="videoFileInput" accept="video/*">
             </div>
-            <button class="submit-btn" onclick="uploadVideo()">Add Video</button>
+            <button class="submit-btn" id="uploadBtn" onclick="uploadVideo()">Save Video</button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Sample Initial Data Database - මෙතනට ඔයාට ඕන තරම් Direct Video Links ඇඩ් කරන්න පුළුවන්
-        let videos = [
-            {
-                id: '1',
-                title: 'X Mod Official Intro Demo Video 1',
-                url: 'https://files.catbox.moe/ajrhj4.mp4',
-                views: 1240,
-                likes: 85,
-                comments: ['Awesome platform!', 'Love the design.']
-            },
-            {
-                id: '2',
-                title: 'Sample Video 2',
-                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                views: 530,
-                likes: 42,
-                comments: ['Nice video!']
-            },
-            {
-                id: '3',
-                title: 'Sample Video 3',
-                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-                views: 890,
-                likes: 67,
-                comments: ['Great content']
-            }
-        ];
-
+        let db;
+        let videos = [];
         let currentVideoId = null;
 
-        // Page Router Function
+        // IndexedDB (Storage) Initialize කිරීම
+        const request = indexedDB.open("XModVideoDB", 1);
+
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("videos")) {
+                db.createObjectStore("videos", { keyPath: "id" });
+            }
+        };
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadStoredVideos();
+        };
+
+        // Storage එකෙන් Video Load කරගැනීම
+        function loadStoredVideos() {
+            const tx = db.transaction("videos", "readonly");
+            const store = tx.objectStore("videos");
+            const getAll = store.getAll();
+
+            getAll.onsuccess = function() {
+                videos = getAll.result || [];
+                renderVideos();
+            };
+        }
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById(pageId).classList.add('active-page');
             window.scrollTo(0, 0);
         }
 
-        // Render Video Grid on Home Page
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
 
+            if (videos.length === 0) {
+                grid.innerHTML = '<p style="color: #666;">වීඩියෝ එකක්වත් නෑ, + ලකුණ ඔබලා වීඩියෝ එකක් Upload කරන්න!</p>';
+                return;
+            }
+
             videos.forEach(v => {
+                const videoUrl = URL.createObjectURL(v.fileBlob);
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.onclick = () => openWatchPage(v.id);
                 card.innerHTML = `
                     <div class="thumbnail-container">
-                        <video src="${v.url}#t=0.5" preload="metadata"></video>
+                        <video src="${videoUrl}#t=0.5" preload="metadata"></video>
                     </div>
                     <div class="video-info">
                         <div class="video-title">${v.title}</div>
-                        <div class="video-meta">${v.views} views • Just now</div>
+                        <div class="video-meta">${v.views} views • Saved</div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // Open Single Video Watch Page
         function openWatchPage(id) {
             const video = videos.find(v => v.id === id);
             if (!video) return;
 
             currentVideoId = id;
-            video.views += 1; // Increase Views
+            video.views += 1;
+            updateVideoInDB(video);
 
-            document.getElementById('videoPlayer').src = video.url;
+            const videoUrl = URL.createObjectURL(video.fileBlob);
+            document.getElementById('videoPlayer').src = videoUrl;
             document.getElementById('watchTitle').innerText = video.title;
             document.getElementById('watchViews').innerText = `${video.views} Views`;
             document.getElementById('likeCount').innerText = video.likes;
 
-            // Render Comments
             renderComments(video.comments);
-
             showPage('watchPage');
-            renderVideos(); // Refresh home views
+            renderVideos();
         }
 
-        // Like Functionality
         function likeVideo() {
             const video = videos.find(v => v.id === currentVideoId);
             if (video) {
                 video.likes += 1;
                 document.getElementById('likeCount').innerText = video.likes;
+                updateVideoInDB(video);
             }
         }
 
-        // Comment Functionality
         function addComment() {
             const input = document.getElementById('commentText');
             if (!input.value.trim()) return;
@@ -238,6 +233,7 @@
             if (video) {
                 video.comments.push(input.value);
                 renderComments(video.comments);
+                updateVideoInDB(video);
                 input.value = '';
             }
         }
@@ -247,56 +243,67 @@
             list.innerHTML = commentsArray.map(c => `<div class="comment-item">${c}</div>`).join('');
         }
 
-        // Download Video Function
         function downloadCurrentVideo() {
             const video = videos.find(v => v.id === currentVideoId);
             if (video) {
                 const a = document.createElement('a');
-                a.href = video.url;
-                a.download = video.title || 'video';
-                a.target = '_blank';
+                a.href = URL.createObjectURL(video.fileBlob);
+                a.download = video.title + '.mp4';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
             }
         }
 
-        // Modal Controls
         function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
-        // Handle Adding Video via URL Link
+        // Video එක Database එකට Save කිරීම
         function uploadVideo() {
             const titleInput = document.getElementById('videoTitleInput').value.trim();
-            const urlInput = document.getElementById('videoUrlInput').value.trim();
+            const fileInput = document.getElementById('videoFileInput').files[0];
 
-            if (!titleInput || !urlInput) {
-                alert('Please provide both a video title and a valid video URL.');
+            if (!titleInput || !fileInput) {
+                alert('කරුණාකර මාතෘකාවක් සහ Video එකක් Select කරන්න!');
                 return;
             }
+
+            const btn = document.getElementById('uploadBtn');
+            btn.innerText = "Saving Video...";
+            btn.disabled = true;
 
             const newVideo = {
                 id: Date.now().toString(),
                 title: titleInput,
-                url: urlInput,
+                fileBlob: fileInput, // වීඩියෝ File එක Direct Store වේ
                 views: 0,
                 likes: 0,
                 comments: []
             };
 
-            videos.unshift(newVideo); // Add to top of list
-            renderVideos();
-            closeModal();
+            const tx = db.transaction("videos", "readwrite");
+            const store = tx.objectStore("videos");
+            store.add(newVideo);
 
-            // Clear Inputs
-            document.getElementById('videoTitleInput').value = '';
-            document.getElementById('videoUrlInput').value = '';
+            tx.oncomplete = function() {
+                btn.innerText = "Save Video";
+                btn.disabled = false;
+                
+                videos.unshift(newVideo);
+                renderVideos();
+                closeModal();
 
-            alert('Video added successfully!');
+                document.getElementById('videoTitleInput').value = '';
+                document.getElementById('videoFileInput').value = '';
+                alert('Video එක සාර්ථකව Storage එකේ Save වුණා!');
+            };
         }
 
-        // Initial Initialization
-        renderVideos();
+        function updateVideoInDB(video) {
+            const tx = db.transaction("videos", "readwrite");
+            const store = tx.objectStore("videos");
+            store.put(video);
+        }
     </script>
 </body>
 </html>
