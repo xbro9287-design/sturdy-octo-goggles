@@ -3,106 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X MOD - Video Save Platform</title>
+    <title>X MOD - Video Platform</title>
     <style>
+        /* === GLOBAL STYLES & ANIMATIONS === */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0b0b0b; color: #fff; overflow-x: hidden; min-height: 100vh; padding: 40px 20px; }
+        body { background-color: #0b0b0b; color: #fff; overflow-x: hidden; }
 
-        /* Animation: Video Card Drop In Effect */
-        @keyframes dropIn {
-            0% {
-                opacity: 0;
-                transform: translateY(-80px) scale(0.8) rotate(-3deg);
-            }
-            60% {
-                opacity: 1;
-                transform: translateY(15px) scale(1.02) rotate(1deg);
-            }
-            100% {
-                transform: translateY(0) scale(1) rotate(0deg);
-            }
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
+            50% { text-shadow: 0 0 20px #ff6600, 0 0 30px #ff6600; }
+            100% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
         }
 
-        /* Video Grid - Home Page Centered Layout */
-        .container { max-width: 1200px; margin: auto; }
-        .video-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 30px; 
-            padding: 20px 0;
+        /* Navbar Design */
+        header { background: #121212; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 2px solid #ff9900; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 28px; font-weight: 900; letter-spacing: 1px; color: #fff; cursor: pointer; }
+        .logo span { background: #ff9900; color: #000; padding: 2px 8px; border-radius: 4px; animation: glow 2s infinite; margin-left: 5px; }
+        
+        .search-bar { display: flex; width: 40%; }
+        .search-bar input { width: 100%; padding: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 4px 0 0 4px; outline: none; }
+        .search-bar button { padding: 10px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
+
+        /* Page Layouts */
+        .container { padding: 30px; max-width: 1400px; margin: auto; }
+        .page { display: none; }
+        .active-page { display: block; }
+
+        /* Home Page Upload Progress Banner */
+        .upload-progress-container {
+            display: none;
+            background: #181818;
+            border: 1px solid #ff9900;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .upload-status-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ff9900;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff9900, #ff5500);
+            transition: width 0.2s ease-in-out;
         }
 
-        .video-card { 
-            background: #181818; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            border: 2px solid #ff9900; 
-            box-shadow: 0 8px 25px rgba(255, 153, 0, 0.25);
-            /* Drop Animation Applied Here */
-            animation: dropIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            transition: transform 0.3s;
-        }
-        .video-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(255, 153, 0, 0.4);
-        }
-
-        .thumbnail-container { width: 100%; height: 200px; background: #000; position: relative; }
+        /* Video Grid Layout */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .video-card { background: #181818; border-radius: 8px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; border: 1px solid #222; }
+        .video-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3); border-color: #ff9900; }
+        .thumbnail-container { width: 100%; height: 170px; background: #000; position: relative; }
         .thumbnail-container video { width: 100%; height: 100%; object-fit: cover; }
-        .video-info { padding: 15px; background: #121212; }
-        .video-title { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .save-status { font-size: 13px; color: #ff9900; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .video-info { padding: 12px; }
+        .video-title { font-size: 15px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-meta { font-size: 12px; color: #aaa; }
 
         /* Floating Plus (+) Button */
-        .fab-btn { 
-            position: fixed; 
-            bottom: 40px; 
-            right: 40px; 
-            background: linear-gradient(45deg, #ff9900, #ff5500); 
-            color: #fff; 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 50%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            font-size: 40px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 6px 25px rgba(255, 153, 0, 0.6); 
-            transition: transform 0.2s; 
-            z-index: 99; 
-        }
-        .fab-btn:hover { transform: scale(1.15); }
+        .fab-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(45deg, #ff9900, #ff5500); color: #fff; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 153, 0, 0.5); transition: transform 0.2s; z-index: 99; }
+        .fab-btn:hover { transform: scale(1.1); }
 
         /* Upload Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #1f1f1f; padding: 30px; border-radius: 12px; width: 90%; max-width: 450px; border: 2px solid #ff9900; position: relative; }
+        .modal-content { background: #1f1f1f; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; border: 1px solid #ff9900; position: relative; }
         .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
-        .modal h2 { margin-bottom: 20px; color: #ff9900; text-align: center; }
+        .modal h2 { margin-bottom: 20px; color: #ff9900; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px; background: #2b2b2b; border: 1px solid #444; color: white; border-radius: 6px; outline: none; }
-        .submit-btn { width: 100%; padding: 12px; background: #ff9900; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 10px; color: #000; }
+        .form-group input { width: 100%; padding: 10px; background: #2b2b2b; border: 1px solid #444; color: white; border-radius: 4px; }
+        .submit-btn { width: 100%; padding: 12px; background: #ff9900; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+
+        /* Single Watch Page Styles */
+        .watch-container { max-width: 1000px; margin: auto; }
+        .main-player { width: 100%; height: 500px; background: #000; border-radius: 8px; outline: none; border: 1px solid #333; }
+        .watch-title { font-size: 22px; margin: 15px 0 10px 0; color: #fff; }
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .action-btns button { background: #222; border: 1px solid #444; color: white; padding: 8px 15px; margin-left: 8px; border-radius: 4px; cursor: pointer; }
+        .action-btns button:hover { background: #ff9900; color: black; }
         
-        .empty-msg { text-align: center; color: #555; margin-top: 100px; font-size: 18px; }
+        /* Comments Section */
+        .comments-section { margin-top: 20px; }
+        .comment-input { display: flex; gap: 10px; margin-bottom: 20px; }
+        .comment-input input { flex: 1; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 4px; }
+        .comment-input button { padding: 10px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .comment-list .comment-item { background: #181818; padding: 10px 15px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #ff9900; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Home Page Video List (Only Video Cards Will Be Shown Here) -->
+    <header>
+        <div class="logo" onclick="showPage('homePage')">X<span>MOD</span></div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search videos...">
+            <button>Search</button>
+        </div>
+    </header>
+
+    <!-- HOME PAGE -->
+    <div id="homePage" class="container page active-page">
+        <!-- Home Screen Upload Progress Section -->
+        <div id="uploadProgressContainer" class="upload-progress-container">
+            <div class="upload-status-text">
+                <span id="uploadTitleText">Uploading Video...</span>
+                <span id="uploadPercentText">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 20px; border-left: 4px solid #ff9900; padding-left: 10px;">Trending Videos</h2>
         <div class="video-grid" id="videoGrid"></div>
     </div>
 
-    <!-- Floating Add Button -->
+    <!-- WATCH PAGE -->
+    <div id="watchPage" class="container page">
+        <div class="watch-container">
+            <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:10px;">← Back to Home</button>
+            <video id="videoPlayer" class="main-player" controls autoplay></video>
+            <h1 id="watchTitle" class="watch-title">Video Title</h1>
+            
+            <div class="actions-bar">
+                <span id="watchViews" style="color: #aaa;">0 Views</span>
+                <div class="action-btns">
+                    <button onclick="likeVideo()">👍 <span id="likeCount">0</span></button>
+                    <button>👎 Dislike</button>
+                    <button onclick="downloadCurrentVideo()">⬇ Download</button>
+                </div>
+            </div>
+
+            <div class="comments-section">
+                <h3>Comments</h3>
+                <div class="comment-input" style="margin-top: 10px;">
+                    <input type="text" id="commentText" placeholder="Add a public comment...">
+                    <button onclick="addComment()">Comment</button>
+                </div>
+                <div class="comment-list" id="commentList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING BUTTON -->
     <div class="fab-btn" onclick="openModal()">+</div>
 
-    <!-- Upload Modal -->
+    <!-- UPLOAD MODAL -->
     <div id="uploadModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Save New Video</h2>
+            <h2>Upload Video</h2>
             <div class="form-group">
                 <label>Video Title</label>
                 <input type="text" id="videoTitleInput" placeholder="Enter title...">
@@ -111,16 +170,17 @@
                 <label>Select Video File</label>
                 <input type="file" id="videoFileInput" accept="video/*">
             </div>
-            <button class="submit-btn" id="uploadBtn" onclick="uploadVideo()">Save to Home</button>
+            <button class="submit-btn" id="uploadBtn" onclick="uploadVideo()">Save Video</button>
         </div>
     </div>
 
     <script>
         let db;
         let videos = [];
+        let currentVideoId = null;
 
         // IndexedDB Initialize
-        const request = indexedDB.open("XModDropVideoDB", 1);
+        const request = indexedDB.open("XModVideoDB", 1);
 
         request.onupgradeneeded = function(e) {
             db = e.target.result;
@@ -145,76 +205,169 @@
             };
         }
 
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.getElementById(pageId).classList.add('active-page');
+            window.scrollTo(0, 0);
+        }
+
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
 
             if (videos.length === 0) {
-                grid.innerHTML = '<div class="empty-msg">තවම වීඩියෝ නැත. එකතු කිරීමට + ලකුණ ක්ලික් කරන්න.</div>';
+                grid.innerHTML = '<p style="color: #666;">වීඩියෝ එකක්වත් නෑ, + ලකුණ ඔබලා වීඩියෝ එකක් Upload කරන්න!</p>';
                 return;
             }
 
-            videos.forEach((v, index) => {
+            videos.forEach(v => {
                 const videoUrl = URL.createObjectURL(v.fileBlob);
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                
-                // Animation delay for existing videos on load
-                card.style.animationDelay = `${index * 0.1}s`;
-
+                card.onclick = () => openWatchPage(v.id);
                 card.innerHTML = `
                     <div class="thumbnail-container">
-                        <video src="${videoUrl}#t=0.5" controls preload="metadata"></video>
+                        <video src="${videoUrl}#t=0.5" preload="metadata"></video>
                     </div>
                     <div class="video-info">
                         <div class="video-title">${v.title}</div>
-                        <div class="save-status">
-                            <span>✔</span> Saved in Storage
-                        </div>
+                        <div class="video-meta">${v.views} views • Saved</div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
+        function openWatchPage(id) {
+            const video = videos.find(v => v.id === id);
+            if (!video) return;
+
+            currentVideoId = id;
+            video.views += 1;
+            updateVideoInDB(video);
+
+            const videoUrl = URL.createObjectURL(video.fileBlob);
+            document.getElementById('videoPlayer').src = videoUrl;
+            document.getElementById('watchTitle').innerText = video.title;
+            document.getElementById('watchViews').innerText = `${video.views} Views`;
+            document.getElementById('likeCount').innerText = video.likes;
+
+            renderComments(video.comments);
+            showPage('watchPage');
+            renderVideos();
+        }
+
+        function likeVideo() {
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                video.likes += 1;
+                document.getElementById('likeCount').innerText = video.likes;
+                updateVideoInDB(video);
+            }
+        }
+
+        function addComment() {
+            const input = document.getElementById('commentText');
+            if (!input.value.trim()) return;
+
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                video.comments.push(input.value);
+                renderComments(video.comments);
+                updateVideoInDB(video);
+                input.value = '';
+            }
+        }
+
+        function renderComments(commentsArray) {
+            const list = document.getElementById('commentList');
+            list.innerHTML = commentsArray.map(c => `<div class="comment-item">${c}</div>`).join('');
+        }
+
+        function downloadCurrentVideo() {
+            const video = videos.find(v => v.id === currentVideoId);
+            if (video) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(video.fileBlob);
+                a.download = video.title + '.mp4';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
         function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
+        // Home Screen Upload with Real-time Progress Bar
         function uploadVideo() {
             const titleInput = document.getElementById('videoTitleInput').value.trim();
             const fileInput = document.getElementById('videoFileInput').files[0];
 
             if (!titleInput || !fileInput) {
-                alert('කරුණාකර මාතෘකාවක් සහ Video File එකක් Select කරන්න!');
+                alert('කරුණාකර මාතෘකාවක් සහ Video එකක් Select කරන්න!');
                 return;
             }
 
-            const btn = document.getElementById('uploadBtn');
-            btn.innerText = "Saving Video...";
-            btn.disabled = true;
+            closeModal();
+            showPage('homePage');
 
-            const newVideo = {
-                id: Date.now().toString(),
-                title: titleInput,
-                fileBlob: fileInput
-            };
+            // Home Progress UI elements
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const progressFill = document.getElementById('progressBarFill');
+            const percentText = document.getElementById('uploadPercentText');
+            const titleText = document.getElementById('uploadTitleText');
 
+            progressContainer.style.display = 'block';
+            titleText.innerText = `Uploading: "${titleInput}"`;
+            progressFill.style.width = '0%';
+            percentText.innerText = '0%';
+
+            // Upload Progress Simulation (Storage Read & Write)
+            let currentProgress = 0;
+            const progressInterval = setInterval(() => {
+                currentProgress += 10;
+                if (currentProgress > 90) {
+                    clearInterval(progressInterval);
+                    
+                    // Complete Save to IndexedDB
+                    const newVideo = {
+                        id: Date.now().toString(),
+                        title: titleInput,
+                        fileBlob: fileInput,
+                        views: 0,
+                        likes: 0,
+                        comments: []
+                    };
+
+                    const tx = db.transaction("videos", "readwrite");
+                    const store = tx.objectStore("videos");
+                    store.add(newVideo);
+
+                    tx.oncomplete = function() {
+                        progressFill.style.width = '100%';
+                        percentText.innerText = '100%';
+                        
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            videos.unshift(newVideo);
+                            renderVideos();
+
+                            document.getElementById('videoTitleInput').value = '';
+                            document.getElementById('videoFileInput').value = '';
+                        }, 600);
+                    };
+                } else {
+                    progressFill.style.width = currentProgress + '%';
+                    percentText.innerText = currentProgress + '%';
+                }
+            }, 120);
+        }
+
+        function updateVideoInDB(video) {
             const tx = db.transaction("videos", "readwrite");
             const store = tx.objectStore("videos");
-            store.add(newVideo);
-
-            tx.oncomplete = function() {
-                btn.innerText = "Save to Home";
-                btn.disabled = false;
-                
-                // Add to top of array for immediate render with animation
-                videos.unshift(newVideo);
-                renderVideos();
-                closeModal();
-
-                document.getElementById('videoTitleInput').value = '';
-                document.getElementById('videoFileInput').value = '';
-            };
+            store.put(video);
         }
     </script>
 </body>
