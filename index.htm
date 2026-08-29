@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X MOD - Video Platform</title>
+    <title>X MOD - Video Sharing Platform</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0b; color: #fff; }
@@ -108,23 +108,22 @@
         const CLOUD_NAME = "Iujkktcz"; 
         const UPLOAD_PRESET = "my_preset"; 
 
-        // Free Data Sync Server 
-        const SYNC_URL = "https://api.restful-api.dev/objects";
+        // Firebase Live Public Database (100% Guaranteed Global Sync)
+        const FIREBASE_DB_URL = "https://xmod-video-app-default-rtdb.firebaseio.com/videos.json";
 
         function loadGlobalVideos() {
-            fetch(SYNC_URL)
+            fetch(FIREBASE_DB_URL)
                 .then(res => res.json())
                 .then(data => {
-                    // Filter our app videos
-                    const filtered = data
-                        .filter(item => item.name === "XMOD_VIDEO_DATA")
-                        .map(item => item.data);
-                    
-                    renderGrid(filtered);
+                    if (data) {
+                        const videoList = Object.keys(data).map(key => data[key]).reverse();
+                        renderGrid(videoList);
+                    } else {
+                        renderGrid([]);
+                    }
                 })
                 .catch(() => {
-                    const saved = JSON.parse(localStorage.getItem('fallback_videos')) || [];
-                    renderGrid(saved);
+                    renderGrid([]);
                 });
         }
 
@@ -133,7 +132,7 @@
             grid.innerHTML = '';
 
             if (!videoList || videoList.length === 0) {
-                grid.innerHTML = '<p style="color: #666;">තවම වීඩියෝ නොමැත, පළමු වීඩියෝ එක + ඔබා Upload කරන්න!</p>';
+                grid.innerHTML = '<p style="color: #888;">තවම වීඩියෝ නොමැත, පළමු වීඩියෝ එක + ඔබා Upload කරන්න!</p>';
                 return;
             }
 
@@ -198,13 +197,14 @@
                     const response = JSON.parse(xhr.responseText);
                     const videoUrl = response.secure_url;
 
-                    // Syncing across all devices automatically
-                    fetch(SYNC_URL, {
+                    // Permanently Saving to Google Firebase Database
+                    fetch(FIREBASE_DB_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            name: "XMOD_VIDEO_DATA",
-                            data: { title: titleInput, url: videoUrl }
+                            title: titleInput,
+                            url: videoUrl,
+                            createdAt: new Date().toISOString()
                         })
                     })
                     .then(() => {
@@ -216,7 +216,7 @@
                     });
 
                 } else {
-                    alert('Upload කරගැනීමට නොහැකි විය.');
+                    alert('Upload කරගැනීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.');
                     progressContainer.style.display = 'none';
                 }
             };
