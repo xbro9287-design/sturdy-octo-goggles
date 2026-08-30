@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X MOD - Video & Photo Sharing Platform</title>
+
+    <!-- GOOGLE IDENTITY SERVICES API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- FIREBASE SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b0b0b; color: #fff; line-height: 1.5; }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
+            50% { text-shadow: 0 0 20px #ff6600, 0 0 30px #ff6600; }
+            100% { text-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900; }
+        }
+
+        /* HEADER & NAVIGATION */
+        header { 
+            background: #121212; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 25px; 
+            border-bottom: 2px solid #ff9900; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo { font-size: 26px; font-weight: 900; letter-spacing: 1px; color: #fff; cursor: pointer; display: flex; align-items: center; }
+        .logo span { background: #ff9900; color: #000; padding: 2px 8px; border-radius: 4px; animation: glow 2s infinite; margin-left: 5px; }
+
+        .nav-tabs { display: flex; gap: 15px; align-items: center; }
+        .nav-btn { background: none; border: none; color: #aaa; font-size: 15px; font-weight: bold; cursor: pointer; padding: 8px 12px; border-radius: 5px; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { color: #ff9900; background: #1a1a1a; }
+
+        .search-box { display: flex; align-items: center; background: #181818; border: 1px solid #333; border-radius: 20px; padding: 5px 15px; min-width: 240px; }
+        .search-box input { background: transparent; border: none; color: #fff; outline: none; width: 100%; padding: 4px; }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-upload { background: #ff9900; color: #000; border: none; font-weight: bold; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .btn-upload:hover { background: #e68a00; transform: scale(1.03); }
+        .btn-auth { background: #222; color: #fff; border: 1px solid #ff9900; font-weight: bold; padding: 7px 15px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .btn-auth:hover { background: #ff9900; color: #000; }
+
+        /* USER PROFILE BADGE */
+        .user-profile-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; background: #1a1a1a; padding: 4px 12px; border-radius: 20px; border: 1px solid #333; }
+        .user-profile-badge img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+        .user-profile-badge span { font-size: 14px; font-weight: bold; color: #ff9900; }
+
+        /* CATEGORY FILTERS */
+        .category-bar { background: #151515; padding: 10px 30px; display: flex; gap: 12px; border-bottom: 1px solid #222; overflow-x: auto; align-items: center; }
+        .cat-btn { background: #222; color: #ccc; border: 1px solid #333; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: 0.2s; }
+        .cat-btn:hover, .cat-btn.active { background: #ff9900; color: #000; border-color: #ff9900; }
+
+        /* CONTAINER */
+        .container { padding: 25px; max-width: 1400px; margin: auto; }
+        .page { display: none; }
+        .active-page { display: block; }
+
+        /* GRIDS & CARDS */
+        .section-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; border-left: 4px solid #ff9900; padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
+        
+        .card { background: #181818; border-radius: 8px; overflow: hidden; transition: transform 0.3s, border-color 0.3s; cursor: pointer; border: 1px solid #222; position: relative; }
+        .card:hover { transform: translateY(-5px); border-color: #ff9900; box-shadow: 0 5px 20px rgba(255, 153, 0, 0.2); }
+        .media-container { width: 100%; height: 170px; background: #000; position: relative; overflow: hidden; }
+        .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
+        .no-download { user-select: none; -webkit-user-drag: none; pointer-events: none; }
+
+        .card-info { padding: 12px; }
+        .card-title { font-size: 15px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .card-user { font-size: 12px; color: #ff9900; margin-bottom: 4px; display: inline-block; text-decoration: none; }
+        .card-user:hover { text-decoration: underline; }
+        .card-meta { font-size: 12px; color: #888; display: flex; justify-content: space-between; align-items: center; }
+
+        /* WATCH & VIEW PAGE */
+        .watch-layout { display: flex; flex-direction: column; gap: 20px; }
+        .main-media-holder { width: 100%; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
+        .main-video-player { width: 100%; max-height: 520px; }
+        .main-photo-display { width: 100%; max-height: 520px; object-fit: contain; background: #050505; }
+        
+        .details-box { background: #141414; padding: 20px; border-radius: 8px; border: 1px solid #222; margin-top: 15px; }
+        .details-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .details-title { font-size: 22px; font-weight: bold; }
+        .action-btns { display: flex; gap: 12px; }
+        .action-btn { background: #222; border: 1px solid #333; color: #fff; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: 0.2s; text-decoration: none; font-size: 13px; }
+        .action-btn:hover { background: #ff9900; color: #000; border-color: #ff9900; }
+
+        /* COMMENTS WITH USER PROFILE STYLING */
+        .comments-container { margin-top: 25px; }
+        .comment-input-wrap { display: flex; gap: 10px; margin: 15px 0 20px 0; }
+        .comment-input-wrap input { flex: 1; padding: 12px; background: #181818; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+        .comment-input-wrap button { padding: 12px 20px; background: #ff9900; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; color: #000; }
+        .comments-list { display: flex; flex-direction: column; gap: 12px; }
+        
+        .comment-card { background: #181818; padding: 12px 15px; border-radius: 6px; border-left: 3px solid #ff9900; display: flex; gap: 12px; align-items: flex-start; }
+        .comment-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #ff9900; flex-shrink: 0; }
+        .comment-content { flex: 1; }
+        .comment-author { font-size: 13px; color: #ff9900; font-weight: bold; margin-bottom: 2px; cursor: pointer; display: inline-block; }
+        .comment-author:hover { text-decoration: underline; }
+        .comment-text { font-size: 14px; color: #eee; word-break: break-word; }
+
+        .suggested-section { margin-top: 40px; border-top: 2px solid #222; padding-top: 20px; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #141414; padding: 30px; border-radius: 10px; border: 1px solid #ff9900; width: 90%; max-width: 400px; text-align: center; position: relative; box-shadow: 0 0 25px rgba(255,153,0,0.3); }
+        .close-modal { position: absolute; top: 10px; right: 15px; color: #aaa; font-size: 24px; cursor: pointer; }
+        .modal input, .modal select { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+        .btn-submit { background: #ff9900; color: #000; font-weight: bold; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* GOOGLE BUTTON CONTAINER */
+        .google-btn-container { display: flex; justify-content: center; margin-top: 15px; }
+
+        /* UPLOAD PAGE */
+        .upload-form-box { max-width: 600px; margin: auto; background: #141414; padding: 30px; border-radius: 10px; border: 1px solid #333; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #ff9900; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+
+        /* PROFILE PAGE */
+        .profile-header { background: #141414; padding: 25px; border-radius: 10px; border: 1px solid #222; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #ff9900; object-fit: cover; }
+        .profile-details h2 { color: #fff; font-size: 24px; }
+        .profile-details p { color: #ff9900; font-weight: bold; font-size: 14px; margin-top: 4px; }
+        .profile-action-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-edit-profile { background: #ff9900; color: #000; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .btn-logout { background: #ff4444; color: #fff; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: stretch; }
+            .nav-tabs { justify-content: center; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo" onclick="showPage('homePage')">X<span>MOD</span></div>
+        
+        <div class="nav-tabs">
+            <button class="nav-btn active" id="btnNavVideos" onclick="switchNav('homePage')">📹 Videos</button>
+            <button class="nav-btn" id="btnNavPhotos" onclick="switchNav('photosPage')">🖼️ Community Photos</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" onkeyup="filterContent()" placeholder="Search videos or photos...">
+        </div>
+
+        <div class="header-actions">
+            <button class="btn-upload" onclick="openUploadPage()">+ Upload</button>
+            <div id="authArea">
+                <button class="btn-auth" onclick="openAuthModal()">Sign In</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CATEGORY FILTER BAR -->
+    <div class="category-bar">
+        <span style="font-size: 12px; color: #888; font-weight: bold; margin-right: 5px;">FILTER BY:</span>
+        <button class="cat-btn active" onclick="setCategory('all', this)">🌐 All Content</button>
+        <button class="cat-btn" onclick="setCategory('female', this)">👩 Female Content</button>
+        <button class="cat-btn" onclick="setCategory('male', this)">👨 Male Content</button>
+        <button class="cat-btn" onclick="setCategory('other', this)">🌈 Other / General</button>
+    </div>
+
+    <!-- HOME / VIDEOS PAGE -->
+    <div id="homePage" class="container page active-page">
+        <div class="section-title"><span>Trending Videos</span></div>
+        <div class="content-grid" id="videoGrid"></div>
+    </div>
+
+    <!-- PHOTOS PAGE -->
+    <div id="photosPage" class="container page">
+        <div class="section-title"><span>Community Photos (Secure)</span></div>
+        <div class="content-grid" id="photoGrid"></div>
+    </div>
+
+    <!-- WATCH VIDEO PAGE -->
+    <div id="watchPage" class="container page">
+        <button onclick="showPage('homePage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:15px; font-size:15px; font-weight:bold;">← Back to Home</button>
+        <div class="watch-layout">
+            <div class="main-media-holder">
+                <video id="mainVideoPlayer" class="main-video-player" controls autoplay></video>
+            </div>
+            <div class="details-box">
+                <div class="details-header">
+                    <div>
+                        <h1 id="videoTitle" class="details-title"></h1>
+                        <p style="color:#888; font-size:13px; margin-top:5px;">Uploaded by: <span id="videoAuthor" style="color:#ff9900; font-weight:bold; cursor:pointer;"></span></p>
+                    </div>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="handleLike()">❤️ <span id="videoLikes">0</span></button>
+                        <span class="action-btn" style="cursor:default;">👁️ <span id="videoViews">0</span> Views</span>
+                        <a id="videoDownloadBtn" class="action-btn" download style="background:#ff9900; color:#000;">⬇️ Download Video</a>
+                    </div>
+                </div>
+
+                <div class="comments-container">
+                    <h3 style="color:#ff9900;">Comments</h3>
+                    <div class="comment-input-wrap">
+                        <input type="text" id="videoCommentInput" placeholder="Write a comment...">
+                        <button onclick="postComment('video')">Post</button>
+                    </div>
+                    <div class="comments-list" id="videoCommentsList"></div>
+                </div>
+            </div>
+
+            <div class="suggested-section">
+                <div class="section-title"><span>Suggested Videos</span></div>
+                <div class="content-grid" id="relatedVideosGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW PHOTO PAGE -->
+    <div id="viewPhotoPage" class="container page">
+        <button onclick="showPage('photosPage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:15px; font-size:15px; font-weight:bold;">← Back to Photos</button>
+        <div class="watch-layout">
+            <div class="main-media-holder" style="text-align: center;">
+                <img id="mainPhotoDisplay" class="main-photo-display no-download" oncontextmenu="return false;">
+            </div>
+            <div class="details-box">
+                <div class="details-header">
+                    <div>
+                        <h1 id="photoTitle" class="details-title"></h1>
+                        <p style="color:#888; font-size:13px; margin-top:5px;">Uploaded by: <span id="photoAuthor" style="color:#ff9900; font-weight:bold; cursor:pointer;"></span></p>
+                    </div>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="handleLike()">❤️ <span id="photoLikes">0</span></button>
+                        <span class="action-btn" style="cursor:default;">👁️ <span id="photoViews">0</span> Views</span>
+                        <span class="action-btn" style="background:#333; color:#aaa; cursor:not-allowed; border:none;">🔒 Downloads Disabled</span>
+                    </div>
+                </div>
+
+                <div class="comments-container">
+                    <h3 style="color:#ff9900;">Comments</h3>
+                    <div class="comment-input-wrap">
+                        <input type="text" id="photoCommentInput" placeholder="Write a comment...">
+                        <button onclick="postComment('photo')">Post</button>
+                    </div>
+                    <div class="comments-list" id="photoCommentsList"></div>
+                </div>
+            </div>
+
+            <div class="suggested-section">
+                <div class="section-title"><span>Suggested Photos</span></div>
+                <div class="content-grid" id="relatedPhotosGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER PROFILE PAGE -->
+    <div id="profilePage" class="container page">
+        <div class="profile-header">
+            <img id="profileAvatar" class="profile-avatar" src="">
+            <div class="profile-details">
+                <h2 id="profileName">Username</h2>
+                <p id="profileCategory">Account Profile</p>
+                <div class="profile-action-btns">
+                    <button class="btn-edit-profile" id="editProfileBtn" onclick="openEditProfileModal()">✏️ Edit Profile</button>
+                    <button class="btn-logout" id="logoutBtn" onclick="logoutUser()">Log Out</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section-title"><span>User's Uploaded Videos</span></div>
+        <div class="content-grid" id="userVideosGrid" style="margin-bottom:30px;"></div>
+
+        <div class="section-title"><span>User's Uploaded Photos</span></div>
+        <div class="content-grid" id="userPhotosGrid"></div>
+    </div>
+
+    <!-- UPLOAD PAGE -->
+    <div id="uploadPage" class="container page">
+        <div class="upload-form-box">
+            <h2 style="color:#ff9900; margin-bottom:20px; text-align:center;">Upload Media</h2>
+            
+            <div class="form-group">
+                <label>Media Type</label>
+                <select id="uploadType">
+                    <option value="video">Video (MP4 Direct URL)</option>
+                    <option value="photo">Photo (JPG/PNG Direct URL)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Target Audience / Category</label>
+                <select id="uploadCategory">
+                    <option value="female">👩 Female</option>
+                    <option value="male">👨 Male</option>
+                    <option value="other">Rainbow/General</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="uploadTitle" placeholder="Enter title...">
+            </div>
+
+            <div class="form-group">
+                <label>Direct File Public Link (MP4 / JPG URL)</label>
+                <input type="text" id="uploadUrl" placeholder="https://example.com/video.mp4">
+            </div>
+
+            <button class="btn-submit" onclick="processUpload()">Publish Publicly Now</button>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAuthModal()">&times;</span>
+            <h2 style="color:#ff9900; margin-bottom:15px;">Sign In to X MOD</h2>
+            
+            <input type="text" id="authUsername" placeholder="Enter Custom Username">
+            <input type="email" id="authEmail" placeholder="Enter Email Address">
+            <button class="btn-submit" onclick="submitAuth()">Sign In (Custom)</button>
+
+            <div style="margin: 15px 0; color:#666; font-weight:bold;">OR USE GOOGLE ACCOUNT</div>
+
+            <!-- OFFICIAL GOOGLE SIGN-IN BUTTON CONTAINER -->
+            <div class="google-btn-container">
+                <div id="g_id_onload"
+                     data-client_id="594971861176-0n783if040hhis298aaavla6tmdg97tg.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditProfileModal()">&times;</span>
+            <h2 style="color:#ff9900; margin-bottom:15px;">Edit Profile</h2>
+            
+            <div style="text-align: left; margin-bottom: 5px; color: #aaa; font-size: 13px;">New Profile Image Link (URL):</div>
+            <input type="text" id="editAvatarUrl" placeholder="https://example.com/photo.jpg">
+
+            <div style="text-align: left; margin-bottom: 5px; color: #aaa; font-size: 13px;">Username:</div>
+            <input type="text" id="editUsername" placeholder="New Username">
+            <p id="nameChangeNote" style="font-size: 11px; color: #ff4444; margin-top: -5px; margin-bottom: 10px; text-align: left;"></p>
+
+            <button class="btn-submit" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+        // FIREBASE INITIALIZATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7Yx0UkpU_XNE_wM3aXzwopaaJ2YYbSJU",
+            authDomain: "xsri-e468b.firebaseapp.com",
+            projectId: "xsri-e468b",
+            storageBucket: "xsri-e468b.firebasestorage.app",
+            messagingSenderId: "857981291104",
+            appId: "1:857981291104:web:2da412c4546b06a6ff9105"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let globalData = [];
+        let activeCategory = 'all';
+        let currentItem = null;
+
+        window.onload = function() {
+            checkLoginState();
+            listenToRealtimeData();
+        };
+
+        // REALTIME FIRESTORE DATABASE LISTENER (PUBLIC FEED)
+        function listenToRealtimeData() {
+            db.collection("posts").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+                globalData = [];
+                snapshot.forEach((doc) => {
+                    globalData.push({ id: doc.id, ...doc.data() });
+                });
+                renderAll();
+            });
+        }
+
+        // GOOGLE SIGN-IN PARSER (JWT DECODER)
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function handleCredentialResponse(response) {
+            const responsePayload = parseJwt(response.credential);
+            const userData = {
+                username: responsePayload.name,
+                email: responsePayload.email,
+                picture: responsePayload.picture,
+                lastNameChange: null
+            };
+
+            localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
+            checkLoginState();
+            closeAuthModal();
+            alert(`Welcome ${userData.username}! Signed in successfully.`);
+        }
+
+        function checkLoginState() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            const authArea = document.getElementById('authArea');
+            if (user) {
+                const imgUrl = user.picture || `https://via.placeholder.com/28/ff9900/000000?text=${user.username.charAt(0)}`;
+                authArea.innerHTML = `
+                    <div class="user-profile-badge" onclick="openUserProfile('${user.username}')">
+                        <img src="${imgUrl}">
+                        <span>${user.username}</span>
+                    </div>
+                `;
+            } else {
+                authArea.innerHTML = `<button class="btn-auth" onclick="openAuthModal()">Sign In</button>`;
+            }
+        }
+
+        function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+        function submitAuth() {
+            const name = document.getElementById('authUsername').value.trim();
+            const email = document.getElementById('authEmail').value.trim();
+            if (!name) return alert('Please enter a username!');
+
+            const userData = { username: name, email: email, picture: '', lastNameChange: null };
+            localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
+            checkLoginState();
+            closeAuthModal();
+            alert('Signed in successfully!');
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('xmod_logged_user');
+            checkLoginState();
+            showPage('homePage');
+            alert('Logged out successfully!');
+        }
+
+        /* EDIT PROFILE FUNCTIONS */
+        function openEditProfileModal() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            if (!user) return;
+
+            document.getElementById('editAvatarUrl').value = user.picture || '';
+            document.getElementById('editUsername').value = user.username;
+
+            const note = document.getElementById('nameChangeNote');
+            if (user.lastNameChange) {
+                const daysPassed = (Date.now() - user.lastNameChange) / (1000 * 60 * 60 * 24);
+                if (daysPassed < 7) {
+                    const daysLeft = Math.ceil(7 - daysPassed);
+                    note.innerText = `* You can change your username again in ${daysLeft} days.`;
+                    document.getElementById('editUsername').disabled = true;
+                } else {
+                    note.innerText = '* Username can only be changed once every 7 days.';
+                    document.getElementById('editUsername').disabled = false;
+                }
+            } else {
+                note.innerText = '* Username can only be changed once every 7 days.';
+                document.getElementById('editUsername').disabled = false;
+            }
+
+            document.getElementById('editProfileModal').style.display = 'flex';
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        async function saveProfileChanges() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            if (!user) return;
+
+            const newAvatar = document.getElementById('editAvatarUrl').value.trim();
+            const newUsername = document.getElementById('editUsername').value.trim();
+
+            if (!newUsername) return alert('Username cannot be empty!');
+
+            let usernameUpdated = false;
+            const oldUsername = user.username;
+
+            if (newUsername !== user.username) {
+                if (user.lastNameChange) {
+                    const daysPassed = (Date.now() - user.lastNameChange) / (1000 * 60 * 60 * 24);
+                    if (daysPassed < 7) {
+                        alert('You cannot change your username yet. Please wait for the 7-day cooldown.');
+                        return;
+                    }
+                }
+                user.username = newUsername;
+                user.lastNameChange = Date.now();
+                usernameUpdated = true;
+            }
+
+            user.picture = newAvatar;
+            localStorage.setItem('xmod_logged_user', JSON.stringify(user));
+
+            if (usernameUpdated) {
+                try {
+                    const postsSnapshot = await db.collection("posts").where("author", "==", oldUsername).get();
+                    const batch = db.batch();
+                    postsSnapshot.forEach((doc) => {
+                        batch.update(doc.ref, { author: newUsername });
+                    });
+                    await batch.commit();
+                } catch (e) {
+                    console.log("Error updating old posts author:", e);
+                }
+            }
+
+            checkLoginState();
+            closeEditProfileModal();
+            openUserProfile(user.username);
+            alert('Profile updated successfully!');
+        }
+
+        function switchNav(pageId) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if(pageId === 'homePage') document.getElementById('btnNavVideos').classList.add('active');
+            else document.getElementById('btnNavPhotos').classList.add('active');
+            showPage(pageId);
+        }
+
+        function setCategory(cat, btn) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        }
+
+        function filterContent() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            renderAll(query);
+        }
+
+        function renderAll(query = '') {
+            const videoGrid = document.getElementById('videoGrid');
+            const photoGrid = document.getElementById('photoGrid');
+
+            videoGrid.innerHTML = '';
+            photoGrid.innerHTML = '';
+
+            globalData.forEach(item => {
+                if (activeCategory !== 'all' && item.category !== activeCategory) return;
+                if (query && !item.title.toLowerCase().includes(query)) return;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                if (item.type === 'video') {
+                    card.onclick = () => openWatchPage(item.id);
+                    card.innerHTML = `
+                        <div class="media-container">
+                            <video src="${item.url}#t=0.5" preload="metadata"></video>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">${item.title}</div>
+                            <span class="card-user" onclick="event.stopPropagation(); openUserProfile('${item.author}')">@${item.author}</span>
+                            <div class="card-meta">
+                                <span>${item.views || 0} Views</span>
+                                <span>❤️ ${item.likes || 0}</span>
+                            </div>
+                        </div>
+                    `;
+                    videoGrid.appendChild(card);
+                } else {
+                    card.onclick = () => openViewPhotoPage(item.id);
+                    card.innerHTML = `
+                        <div class="media-container">
+                            <img src="${item.url}" class="no-download" oncontextmenu="return false;">
+                        </div>
+                        <div class="card-info">
+                            <div class="card-title">${item.title}</div>
+                            <span class="card-user" onclick="event.stopPropagation(); openUserProfile('${item.author}')">@${item.author}</span>
+                            <div class="card-meta">
+                                <span>${item.views || 0} Views</span>
+                                <span>❤️ ${item.likes || 0}</span>
+                            </div>
+                        </div>
+                    `;
+                    photoGrid.appendChild(card);
+                }
+            });
+        }
+
+        function openWatchPage(id) {
+            const item = globalData.find(i => i.id === id);
+            if (!item) return;
+
+            currentItem = item;
+            db.collection("posts").doc(id).update({ views: (item.views || 0) + 1 });
+
+            document.getElementById('mainVideoPlayer').src = item.url;
+            document.getElementById('videoTitle').innerText = item.title;
+            document.getElementById('videoAuthor').innerText = '@' + item.author;
+            document.getElementById('videoAuthor').onclick = () => openUserProfile(item.author);
+            document.getElementById('videoViews').innerText = (item.views || 0) + 1;
+            document.getElementById('videoLikes').innerText = item.likes || 0;
+            document.getElementById('videoDownloadBtn').href = item.url;
+
+            loadComments(item.id, 'videoCommentsList');
+            renderRelated('video', item.id);
+            showPage('watchPage');
+        }
+
+        function openViewPhotoPage(id) {
+            const item = globalData.find(i => i.id === id);
+            if (!item) return;
+
+            currentItem = item;
+            db.collection("posts").doc(id).update({ views: (item.views || 0) + 1 });
+
+            document.getElementById('mainPhotoDisplay').src = item.url;
+            document.getElementById('photoTitle').innerText = item.title;
+            document.getElementById('photoAuthor').innerText = '@' + item.author;
+            document.getElementById('photoAuthor').onclick = () => openUserProfile(item.author);
+            document.getElementById('photoViews').innerText = (item.views || 0) + 1;
+            document.getElementById('photoLikes').innerText = item.likes || 0;
+
+            loadComments(item.id, 'photoCommentsList');
+            renderRelated('photo', item.id);
+            showPage('viewPhotoPage');
+        }
+
+        function handleLike() {
+            if (!currentItem) return;
+            db.collection("posts").doc(currentItem.id).update({ likes: (currentItem.likes || 0) + 1 }).then(() => {
+                currentItem.likes = (currentItem.likes || 0) + 1;
+                if (currentItem.type === 'video') document.getElementById('videoLikes').innerText = currentItem.likes;
+                else document.getElementById('photoLikes').innerText = currentItem.likes;
+            });
+        }
+
+        function renderRelated(type, currentId) {
+            const grid = type === 'video' ? document.getElementById('relatedVideosGrid') : document.getElementById('relatedPhotosGrid');
+            grid.innerHTML = '';
+
+            const filtered = globalData.filter(i => i.type === type && i.id !== currentId);
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => type === 'video' ? openWatchPage(item.id) : openViewPhotoPage(item.id);
+                card.innerHTML = `
+                    <div class="media-container">
+                        ${type === 'video' ? `<video src="${item.url}#t=0.5"></video>` : `<img src="${item.url}" class="no-download">`}
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title">${item.title}</div>
+                        <div class="card-meta"><span>${item.views || 0} Views</span><span>❤️ ${item.likes || 0}</span></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* COMMENTS FUNCTION (UPDATED WITH PROFILE AVATAR & CLICKABLE PROFILE LINK) */
+        function loadComments(postId, elementId) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            
+            db.collection("posts").doc(postId).collection("comments").orderBy("createdAt", "desc").get().then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<p style="color:#666; font-size:13px;">No comments yet.</p>`;
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const c = doc.data();
+                    const avatarUrl = c.userPicture || `https://via.placeholder.com/35/ff9900/000000?text=${c.user ? c.user.charAt(0) : 'U'}`;
+                    
+                    const box = document.createElement('div');
+                    box.className = 'comment-card';
+                    box.innerHTML = `
+                        <img class="comment-avatar" src="${avatarUrl}" onclick="openUserProfile('${c.user}')">
+                        <div class="comment-content">
+                            <div class="comment-author" onclick="openUserProfile('${c.user}')">@${c.user}</div>
+                            <div class="comment-text">${c.text}</div>
+                        </div>
+                    `;
+                    container.appendChild(box);
+                });
+            });
+        }
+
+        function postComment(type) {
+            if (!currentItem) return;
+            const input = document.getElementById(type === 'video' ? 'videoCommentInput' : 'photoCommentInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user')) || { username: 'Guest', picture: '' };
+
+            db.collection("posts").doc(currentItem.id).collection("comments").add({
+                user: user.username,
+                userPicture: user.picture || '',
+                text: text,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                input.value = '';
+                loadComments(currentItem.id, type === 'video' ? 'videoCommentsList' : 'photoCommentsList');
+            });
+        }
+
+        function openUserProfile(username) {
+            const currentUser = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            const isCurrentUser = currentUser && currentUser.username === username;
+
+            document.getElementById('profileName').innerText = '@' + username;
+            
+            let avatarImg = `https://via.placeholder.com/80/ff9900/000000?text=${username.charAt(0)}`;
+            if (isCurrentUser && currentUser.picture) {
+                avatarImg = currentUser.picture;
+            }
+
+            document.getElementById('profileAvatar').src = avatarImg;
+            document.getElementById('editProfileBtn').style.display = isCurrentUser ? 'inline-block' : 'none';
+            document.getElementById('logoutBtn').style.display = isCurrentUser ? 'inline-block' : 'none';
+
+            const userVideos = document.getElementById('userVideosGrid');
+            const userPhotos = document.getElementById('userPhotosGrid');
+            userVideos.innerHTML = '';
+            userPhotos.innerHTML = '';
+
+            globalData.filter(i => i.author === username).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                if (item.type === 'video') {
+                    card.onclick = () => openWatchPage(item.id);
+                    card.innerHTML = `<div class="media-container"><video src="${item.url}#t=0.5"></video></div><div class="card-info"><div class="card-title">${item.title}</div></div>`;
+                    userVideos.appendChild(card);
+                } else {
+                    card.onclick = () => openViewPhotoPage(item.id);
+                    card.innerHTML = `<div class="media-container"><img src="${item.url}" class="no-download"></div><div class="card-info"><div class="card-title">${item.title}</div></div>`;
+                    userPhotos.appendChild(card);
+                }
+            });
+
+            showPage('profilePage');
+        }
+
+        function openUploadPage() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            if (!user) {
+                alert('Please Sign In first to upload content!');
+                openAuthModal();
+                return;
+            }
+            showPage('uploadPage');
+        }
+
+        function processUpload() {
+            const type = document.getElementById('uploadType').value;
+            const category = document.getElementById('uploadCategory').value;
+            const title = document.getElementById('uploadTitle').value.trim();
+            const urlInput = document.getElementById('uploadUrl').value.trim();
+
+            if (!title || !urlInput) return alert('Please enter both Title and Direct File URL!');
+
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user')) || { username: 'Anonymous' };
+
+            db.collection("posts").add({
+                type: type,
+                title: title,
+                url: urlInput,
+                category: category,
+                author: user.username,
+                views: 0,
+                likes: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('uploadTitle').value = '';
+                document.getElementById('uploadUrl').value = '';
+                switchNav(type === 'video' ? 'homePage' : 'photosPage');
+                alert('Post published publicly!');
+            }).catch(err => {
+                alert("Upload failed: " + err.message);
+            });
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.getElementById(pageId).classList.add('active-page');
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
