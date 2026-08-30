@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X MOD - Video & Photo Sharing Platform</title>
+
+    <!-- GOOGLE IDENTITY SERVICES API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0b; color: #fff; line-height: 1.5; }
@@ -46,17 +50,17 @@
         .btn-auth { background: #222; color: #fff; border: 1px solid #ff9900; font-weight: bold; padding: 7px 15px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
         .btn-auth:hover { background: #ff9900; color: #000; }
 
-        /* USER PROFILE BADGE IN HEADER */
+        /* USER PROFILE BADGE */
         .user-profile-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; background: #1a1a1a; padding: 4px 12px; border-radius: 20px; border: 1px solid #333; }
         .user-profile-badge img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
         .user-profile-badge span { font-size: 14px; font-weight: bold; color: #ff9900; }
 
-        /* CATEGORY FILTERS (ICONS BAR) */
+        /* CATEGORY FILTERS */
         .category-bar { background: #151515; padding: 10px 30px; display: flex; gap: 12px; border-bottom: 1px solid #222; overflow-x: auto; align-items: center; }
         .cat-btn { background: #222; color: #ccc; border: 1px solid #333; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: 0.2s; }
         .cat-btn:hover, .cat-btn.active { background: #ff9900; color: #000; border-color: #ff9900; }
 
-        /* MAIN CONTAINER */
+        /* CONTAINER */
         .container { padding: 25px; max-width: 1400px; margin: auto; }
         .page { display: none; }
         .active-page { display: block; }
@@ -69,8 +73,6 @@
         .card:hover { transform: translateY(-5px); border-color: #ff9900; box-shadow: 0 5px 20px rgba(255, 153, 0, 0.2); }
         .media-container { width: 100%; height: 170px; background: #000; position: relative; overflow: hidden; }
         .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* UNTOUCHABLE PHOTOS (DISABLE DOWNLOAD & RIGHT CLICK) */
         .no-download { user-select: none; -webkit-user-drag: none; pointer-events: none; }
 
         .card-info { padding: 12px; }
@@ -101,28 +103,30 @@
         .comment-card { background: #181818; padding: 12px 15px; border-radius: 6px; border-left: 3px solid #ff9900; }
         .comment-author { font-size: 12px; color: #aaa; font-weight: bold; margin-bottom: 4px; }
 
-        /* SUGGESTED RELEVANT FEED (VIDEOS OR PHOTOS ONLY) */
         .suggested-section { margin-top: 40px; border-top: 2px solid #222; padding-top: 20px; }
 
-        /* MODAL (SIGN IN / LOGIN) */
+        /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: #141414; padding: 30px; border-radius: 10px; border: 1px solid #ff9900; width: 90%; max-width: 400px; text-align: center; position: relative; box-shadow: 0 0 25px rgba(255,153,0,0.3); }
         .close-modal { position: absolute; top: 10px; right: 15px; color: #aaa; font-size: 24px; cursor: pointer; }
         .modal input, .modal select { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
-        .btn-google { background: #fff; color: #000; font-weight: bold; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
         .btn-submit { background: #ff9900; color: #000; font-weight: bold; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* GOOGLE BUTTON CONTAINER */
+        .google-btn-container { display: flex; justify-content: center; margin-top: 15px; }
 
         /* UPLOAD PAGE */
         .upload-form-box { max-width: 600px; margin: auto; background: #141414; padding: 30px; border-radius: 10px; border: 1px solid #333; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: #ff9900; font-weight: bold; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
 
         /* PROFILE PAGE */
         .profile-header { background: #141414; padding: 25px; border-radius: 10px; border: 1px solid #222; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #ff9900; object-fit: cover; }
         .profile-details h2 { color: #fff; font-size: 24px; }
         .profile-details p { color: #ff9900; font-weight: bold; font-size: 14px; margin-top: 4px; }
+        .btn-logout { background: #ff4444; color: #fff; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 8px; }
 
         @media (max-width: 768px) {
             header { flex-direction: column; align-items: stretch; }
@@ -154,7 +158,7 @@
         </div>
     </header>
 
-    <!-- CATEGORY FILTER BAR (3 ICONS) -->
+    <!-- CATEGORY FILTER BAR -->
     <div class="category-bar">
         <span style="font-size: 12px; color: #888; font-weight: bold; margin-right: 5px;">FILTER BY:</span>
         <button class="cat-btn active" onclick="setCategory('all')">🌐 All Content</button>
@@ -165,17 +169,13 @@
 
     <!-- HOME / VIDEOS PAGE -->
     <div id="homePage" class="container page active-page">
-        <div class="section-title">
-            <span>Trending Videos</span>
-        </div>
+        <div class="section-title"><span>Trending Videos</span></div>
         <div class="content-grid" id="videoGrid"></div>
     </div>
 
-    <!-- PHOTOS COMMUNITY PAGE -->
+    <!-- PHOTOS PAGE -->
     <div id="photosPage" class="container page">
-        <div class="section-title">
-            <span>Community Photos (Untouchable / Secure)</span>
-        </div>
+        <div class="section-title"><span>Community Photos (Secure)</span></div>
         <div class="content-grid" id="photoGrid"></div>
     </div>
 
@@ -199,7 +199,6 @@
                     </div>
                 </div>
 
-                <!-- COMMENTS -->
                 <div class="comments-container">
                     <h3 style="color:#ff9900;">Comments</h3>
                     <div class="comment-input-wrap">
@@ -210,7 +209,6 @@
                 </div>
             </div>
 
-            <!-- RELATED VIDEOS ONLY -->
             <div class="suggested-section">
                 <div class="section-title"><span>Suggested Videos</span></div>
                 <div class="content-grid" id="relatedVideosGrid"></div>
@@ -223,8 +221,7 @@
         <button onclick="showPage('photosPage')" style="background:none; border:none; color:#ff9900; cursor:pointer; margin-bottom:15px; font-size:15px; font-weight:bold;">← Back to Photos</button>
         <div class="watch-layout">
             <div class="main-media-holder" style="text-align: center;">
-                <!-- STRICT DOWNLOAD PREVENTION FOR PHOTOS -->
-                <img id="mainPhotoDisplay" class="main-photo-display no-download" oncontextmenu="return false;" dragstart="return false;">
+                <img id="mainPhotoDisplay" class="main-photo-display no-download" oncontextmenu="return false;">
             </div>
             <div class="details-box">
                 <div class="details-header">
@@ -239,7 +236,6 @@
                     </div>
                 </div>
 
-                <!-- COMMENTS -->
                 <div class="comments-container">
                     <h3 style="color:#ff9900;">Comments</h3>
                     <div class="comment-input-wrap">
@@ -250,7 +246,6 @@
                 </div>
             </div>
 
-            <!-- RELATED PHOTOS ONLY -->
             <div class="suggested-section">
                 <div class="section-title"><span>Suggested Photos</span></div>
                 <div class="content-grid" id="relatedPhotosGrid"></div>
@@ -261,10 +256,11 @@
     <!-- USER PROFILE PAGE -->
     <div id="profilePage" class="container page">
         <div class="profile-header">
-            <img id="profileAvatar" class="profile-avatar" src="https://via.placeholder.com/80/ff9900/000000?text=User">
+            <img id="profileAvatar" class="profile-avatar" src="">
             <div class="profile-details">
                 <h2 id="profileName">Username</h2>
                 <p id="profileCategory">Account Profile</p>
+                <button class="btn-logout" id="logoutBtn" onclick="logoutUser()">Log Out</button>
             </div>
         </div>
         
@@ -275,7 +271,7 @@
         <div class="content-grid" id="userPhotosGrid"></div>
     </div>
 
-    <!-- UPLOAD FORM PAGE -->
+    <!-- UPLOAD PAGE -->
     <div id="uploadPage" class="container page">
         <div class="upload-form-box">
             <h2 style="color:#ff9900; margin-bottom:20px; text-align:center;">Upload Media</h2>
@@ -289,11 +285,11 @@
             </div>
 
             <div class="form-group">
-                <label>Target Audience / Gender Category</label>
+                <label>Target Audience / Category</label>
                 <select id="uploadCategory">
                     <option value="female">👩 Female</option>
                     <option value="male">👨 Male</option>
-                    <option value="other">🌈 Other / General</option>
+                    <option value="other">Rainbow/General</option>
                 </select>
             </div>
 
@@ -316,32 +312,38 @@
         </div>
     </div>
 
-    <!-- AUTH MODAL (SIGN IN / LOG IN) -->
+    <!-- AUTH MODAL -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeAuthModal()">&times;</span>
             <h2 style="color:#ff9900; margin-bottom:15px;">Sign In to X MOD</h2>
             
-            <input type="text" id="authUsername" placeholder="Enter Account Username">
+            <input type="text" id="authUsername" placeholder="Enter Custom Username">
             <input type="email" id="authEmail" placeholder="Enter Email Address">
-            <select id="authGender">
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-            </select>
-            
-            <button class="btn-submit" onclick="submitAuth()">Sign In (Permanent Remember)</button>
+            <button class="btn-submit" onclick="submitAuth()">Sign In (Custom)</button>
 
-            <div style="margin: 15px 0; color:#666; font-weight:bold;">OR</div>
+            <div style="margin: 15px 0; color:#666; font-weight:bold;">OR USE GOOGLE ACCOUNT</div>
 
-            <button class="btn-google" onclick="googleAuth()">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="18"> Google Sign In
-            </button>
+            <!-- OFFICIAL GOOGLE SIGN-IN BUTTON CONTAINER -->
+            <div class="google-btn-container">
+                <div id="g_id_onload"
+                     data-client_id="594971861176-fhd3fthq8c05itoqvuhtvuu73e501t2q.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // DEFAULT CONTENT INITIALIZER
         const initialContent = [
             {
                 id: 'v1',
@@ -368,7 +370,6 @@
         let activeCategory = 'all';
         let currentItem = null;
 
-        // INITIAL LOAD & PERMANENT LOGIN CHECK
         window.onload = function() {
             if (!localStorage.getItem('xmod_data')) {
                 localStorage.setItem('xmod_data', JSON.stringify(initialContent));
@@ -377,14 +378,41 @@
             renderAll();
         };
 
-        // PERMANENT LOGIN SYSTEM (LOCAL STORAGE BASED)
+        // GOOGLE SIGN-IN PARSER (JWT DECODER)
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // GOOGLE ACCOUNT SELECTOR CALLBACK
+        function handleCredentialResponse(response) {
+            const responsePayload = parseJwt(response.credential);
+            
+            // Extract user details directly from chosen Google Account
+            const userData = {
+                username: responsePayload.name,
+                email: responsePayload.email,
+                picture: responsePayload.picture
+            };
+
+            localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
+            checkLoginState();
+            closeAuthModal();
+            alert(`Welcome ${userData.username}! Signed in with Google successfully.`);
+        }
+
         function checkLoginState() {
             const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
             const authArea = document.getElementById('authArea');
             if (user) {
+                const imgUrl = user.picture || `https://via.placeholder.com/28/ff9900/000000?text=${user.username.charAt(0)}`;
                 authArea.innerHTML = `
                     <div class="user-profile-badge" onclick="openUserProfile('${user.username}')">
-                        <img src="https://via.placeholder.com/28/ff9900/000000?text=${user.username.charAt(0)}">
+                        <img src="${imgUrl}">
                         <span>${user.username}</span>
                     </div>
                 `;
@@ -399,25 +427,22 @@
         function submitAuth() {
             const name = document.getElementById('authUsername').value.trim();
             const email = document.getElementById('authEmail').value.trim();
-            const gender = document.getElementById('authGender').value;
             if (!name) return alert('Please enter a username!');
 
-            const userData = { username: name, email: email, gender: gender };
+            const userData = { username: name, email: email, picture: '' };
             localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
             checkLoginState();
             closeAuthModal();
-            alert('Signed in successfully! Your session is saved permanently.');
+            alert('Signed in successfully!');
         }
 
-        function googleAuth() {
-            const userData = { username: 'Google_User', email: 'user@gmail.com', gender: 'other' };
-            localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
+        function logoutUser() {
+            localStorage.removeItem('xmod_logged_user');
             checkLoginState();
-            closeAuthModal();
-            alert('Google Sign-In successful!');
+            showPage('homePage');
+            alert('Logged out successfully!');
         }
 
-        // CONTENT MANAGEMENT
         function getData() { return JSON.parse(localStorage.getItem('xmod_data')) || []; }
         function saveData(data) { localStorage.setItem('xmod_data', JSON.stringify(data)); }
 
@@ -484,14 +509,12 @@
             });
         }
 
-        // WATCH VIDEO PAGE FUNCTION
         function openWatchPage(id) {
             const data = getData();
             const item = data.find(i => i.id === id);
             if (!item) return;
 
             currentItem = item;
-            // ACCURATE 1 VIEW INCREMENT
             item.views = parseInt(item.views || 0) + 1;
             saveData(data);
 
@@ -508,7 +531,6 @@
             showPage('watchPage');
         }
 
-        // VIEW PHOTO PAGE FUNCTION (PROTECTED)
         function openViewPhotoPage(id) {
             const data = getData();
             const item = data.find(i => i.id === id);
@@ -530,7 +552,6 @@
             showPage('viewPhotoPage');
         }
 
-        // LIKE HANDLER
         function handleLike() {
             if (!currentItem) return;
             const data = getData();
@@ -543,7 +564,6 @@
             }
         }
 
-        // SUGGESTED / RELATED CONTENT (STRICT SEPARATION: VIDEOS ONLY OR PHOTOS ONLY)
         function renderRelated(type, currentId) {
             const data = getData();
             const grid = type === 'video' ? document.getElementById('relatedVideosGrid') : document.getElementById('relatedPhotosGrid');
@@ -567,7 +587,6 @@
             });
         }
 
-        // COMMENTS SYSTEM
         function loadComments(type, id) {
             const container = type === 'video' ? document.getElementById('videoCommentsList') : document.getElementById('photoCommentsList');
             container.innerHTML = '';
@@ -606,10 +625,18 @@
             loadComments(type, currentItem.id);
         }
 
-        // USER PROFILE PAGE
         function openUserProfile(username) {
+            const currentUser = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            const isCurrentUser = currentUser && currentUser.username === username;
+
             document.getElementById('profileName').innerText = '@' + username;
-            document.getElementById('profileAvatar').src = `https://via.placeholder.com/80/ff9900/000000?text=${username.charAt(0)}`;
+            
+            const avatarImg = (isCurrentUser && currentUser.picture) 
+                ? currentUser.picture 
+                : `https://via.placeholder.com/80/ff9900/000000?text=${username.charAt(0)}`;
+
+            document.getElementById('profileAvatar').src = avatarImg;
+            document.getElementById('logoutBtn').style.display = isCurrentUser ? 'inline-block' : 'none';
 
             const data = getData();
             const userVideos = document.getElementById('userVideosGrid');
@@ -634,7 +661,6 @@
             showPage('profilePage');
         }
 
-        // UPLOAD SYSTEM
         function openUploadPage() {
             const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
             if (!user) {
@@ -686,7 +712,6 @@
             alert('Content uploaded successfully!');
         }
 
-        // PAGE NAVIGATION
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById(pageId).classList.add('active-page');
