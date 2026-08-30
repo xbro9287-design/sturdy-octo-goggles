@@ -126,11 +126,13 @@
         .form-group input, .form-group select { width: 100%; padding: 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
 
         /* PROFILE PAGE */
-        .profile-header { background: #141414; padding: 25px; border-radius: 10px; border: 1px solid #222; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
+        .profile-header { background: #141414; padding: 25px; border-radius: 10px; border: 1px solid #222; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #ff9900; object-fit: cover; }
         .profile-details h2 { color: #fff; font-size: 24px; }
         .profile-details p { color: #ff9900; font-weight: bold; font-size: 14px; margin-top: 4px; }
-        .btn-logout { background: #ff4444; color: #fff; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 8px; }
+        .profile-action-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-edit-profile { background: #ff9900; color: #000; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .btn-logout { background: #ff4444; color: #fff; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-weight: bold; }
 
         @media (max-width: 768px) {
             header { flex-direction: column; align-items: stretch; }
@@ -264,7 +266,10 @@
             <div class="profile-details">
                 <h2 id="profileName">Username</h2>
                 <p id="profileCategory">Account Profile</p>
-                <button class="btn-logout" id="logoutBtn" onclick="logoutUser()">Log Out</button>
+                <div class="profile-action-btns">
+                    <button class="btn-edit-profile" id="editProfileBtn" onclick="openEditProfileModal()">✏️ Edit Profile</button>
+                    <button class="btn-logout" id="logoutBtn" onclick="logoutUser()">Log Out</button>
+                </div>
             </div>
         </div>
         
@@ -342,6 +347,23 @@
         </div>
     </div>
 
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditProfileModal()">&times;</span>
+            <h2 style="color:#ff9900; margin-bottom:15px;">Edit Profile</h2>
+            
+            <div style="text-align: left; margin-bottom: 5px; color: #aaa; font-size: 13px;">New Profile Image Link (URL):</div>
+            <input type="text" id="editAvatarUrl" placeholder="https://example.com/photo.jpg">
+
+            <div style="text-align: left; margin-bottom: 5px; color: #aaa; font-size: 13px;">Username:</div>
+            <input type="text" id="editUsername" placeholder="New Username">
+            <p id="nameChangeNote" style="font-size: 11px; color: #ff4444; margin-top: -5px; margin-bottom: 10px; text-align: left;"></p>
+
+            <button class="btn-submit" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+    </div>
+
     <script>
         // FIREBASE INITIALIZATION
         const firebaseConfig = {
@@ -391,7 +413,8 @@
             const userData = {
                 username: responsePayload.name,
                 email: responsePayload.email,
-                picture: responsePayload.picture
+                picture: responsePayload.picture,
+                lastNameChange: null
             };
 
             localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
@@ -424,7 +447,7 @@
             const email = document.getElementById('authEmail').value.trim();
             if (!name) return alert('Please enter a username!');
 
-            const userData = { username: name, email: email, picture: '' };
+            const userData = { username: name, email: email, picture: '', lastNameChange: null };
             localStorage.setItem('xmod_logged_user', JSON.stringify(userData));
             checkLoginState();
             closeAuthModal();
@@ -436,6 +459,86 @@
             checkLoginState();
             showPage('homePage');
             alert('Logged out successfully!');
+        }
+
+        /* EDIT PROFILE FUNCTIONS */
+        function openEditProfileModal() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            if (!user) return;
+
+            document.getElementById('editAvatarUrl').value = user.picture || '';
+            document.getElementById('editUsername').value = user.username;
+
+            const note = document.getElementById('nameChangeNote');
+            if (user.lastNameChange) {
+                const daysPassed = (Date.now() - user.lastNameChange) / (1000 * 60 * 60 * 24);
+                if (daysPassed < 7) {
+                    const daysLeft = Math.ceil(7 - daysPassed);
+                    note.innerText = `* You can change your username again in ${daysLeft} days.`;
+                    document.getElementById('editUsername').disabled = true;
+                } else {
+                    note.innerText = '* Username can only be changed once every 7 days.';
+                    document.getElementById('editUsername').disabled = false;
+                }
+            } else {
+                note.innerText = '* Username can only be changed once every 7 days.';
+                document.getElementById('editUsername').disabled = false;
+            }
+
+            document.getElementById('editProfileModal').style.display = 'flex';
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        async function saveProfileChanges() {
+            const user = JSON.parse(localStorage.getItem('xmod_logged_user'));
+            if (!user) return;
+
+            const newAvatar = document.getElementById('editAvatarUrl').value.trim();
+            const newUsername = document.getElementById('editUsername').value.trim();
+
+            if (!newUsername) return alert('Username cannot be empty!');
+
+            let usernameUpdated = false;
+            const oldUsername = user.username;
+
+            // Check if username is being changed
+            if (newUsername !== user.username) {
+                if (user.lastNameChange) {
+                    const daysPassed = (Date.now() - user.lastNameChange) / (1000 * 60 * 60 * 24);
+                    if (daysPassed < 7) {
+                        alert('You cannot change your username yet. Please wait for the 7-day cooldown.');
+                        return;
+                    }
+                }
+                user.username = newUsername;
+                user.lastNameChange = Date.now();
+                usernameUpdated = true;
+            }
+
+            user.picture = newAvatar;
+            localStorage.setItem('xmod_logged_user', JSON.stringify(user));
+
+            // If username was changed, update previous posts in database
+            if (usernameUpdated) {
+                try {
+                    const postsSnapshot = await db.collection("posts").where("author", "==", oldUsername).get();
+                    const batch = db.batch();
+                    postsSnapshot.forEach((doc) => {
+                        batch.update(doc.ref, { author: newUsername });
+                    });
+                    await batch.commit();
+                } catch (e) {
+                    console.log("Error updating old posts author:", e);
+                }
+            }
+
+            checkLoginState();
+            closeEditProfileModal();
+            openUserProfile(user.username);
+            alert('Profile updated successfully!');
         }
 
         function switchNav(pageId) {
@@ -620,11 +723,13 @@
 
             document.getElementById('profileName').innerText = '@' + username;
             
-            const avatarImg = (isCurrentUser && currentUser.picture) 
-                ? currentUser.picture 
-                : `https://via.placeholder.com/80/ff9900/000000?text=${username.charAt(0)}`;
+            let avatarImg = `https://via.placeholder.com/80/ff9900/000000?text=${username.charAt(0)}`;
+            if (isCurrentUser && currentUser.picture) {
+                avatarImg = currentUser.picture;
+            }
 
             document.getElementById('profileAvatar').src = avatarImg;
+            document.getElementById('editProfileBtn').style.display = isCurrentUser ? 'inline-block' : 'none';
             document.getElementById('logoutBtn').style.display = isCurrentUser ? 'inline-block' : 'none';
 
             const userVideos = document.getElementById('userVideosGrid');
@@ -696,3 +801,4 @@
     </script>
 </body>
 </html>
+
